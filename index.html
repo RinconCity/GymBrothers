@@ -132,7 +132,17 @@ img { display: block; max-width: 100%; }
   transition: opacity 300ms var(--ease-precise), width 300ms var(--ease-precise);
 }
 .topbar-brand.has-back .back-arrow { opacity: 1; width: 1.2rem; }
-.topbar-actions { display: flex; align-items: center; gap: 0.5rem; }
+.topbar-actions { display: flex; align-items: center; gap: 1rem; }
+.user-badge {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem;
+  text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-accent);
+  border: 1px solid rgba(255,45,143,0.4); padding: 0.4rem 0.8rem;
+}
+.sync-indicator {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: rgba(255,255,255,0.7);
+  display: flex; align-items: center; gap: 0.5rem; opacity: 0; transition: opacity 0.3s;
+}
+.sync-indicator.is-syncing { opacity: 1; }
 .topbar-btn {
   font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
   text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.7);
@@ -141,11 +151,6 @@ img { display: block; max-width: 100%; }
 }
 .topbar-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
 .topbar-btn.is-danger:hover { border-color: var(--color-danger); color: var(--color-danger); }
-.sync-indicator {
-  font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--color-accent);
-  display: flex; align-items: center; gap: 0.5rem; opacity: 0; transition: opacity 0.3s;
-}
-.sync-indicator.is-syncing { opacity: 1; }
 
 /* ============ DASHBOARD ============ */
 .dashboard { padding: 3rem 2rem 6rem; max-width: 1400px; margin: 0 auto; }
@@ -292,8 +297,9 @@ img { display: block; max-width: 100%; }
 .confirm-actions { display: flex; gap: 0.75rem; justify-content: center; }
 
 @media (max-width: 900px) {
-  .topbar { padding: 1rem 1.25rem; }
-  .topbar-btn { padding: 0.5rem 0.65rem; font-size: 0.65rem; }
+  .topbar { padding: 1rem 1.25rem; flex-wrap: wrap; gap: 1rem; }
+  .topbar-actions { gap: 0.5rem; }
+  .user-badge, .topbar-btn { padding: 0.5rem 0.65rem; font-size: 0.6rem; }
   .dashboard { padding: 2rem 1.25rem 4rem; }
   .dashboard-stats { gap: 1.5rem; }
   .client-header { grid-template-columns: 1fr; gap: 1.5rem; padding: 1.5rem; }
@@ -324,7 +330,7 @@ img { display: block; max-width: 100%; }
     <div class="login-brand">Gym<span>·</span>Brothers</div>
     <div class="login-sub">Panel del Entrenador</div>
     <form id="loginForm">
-      <label class="login-label">Contraseña del panel</label>
+      <label class="login-label">Tu contraseña</label>
       <input type="password" class="login-input" id="passwordInput" placeholder="••••••••••" autofocus>
       
       <div id="tokenWrap" style="display: none;">
@@ -335,8 +341,8 @@ img { display: block; max-width: 100%; }
       <div class="login-error" id="loginError"></div>
       <button type="submit" class="login-btn" id="loginBtn"><span>Entrar al panel →</span></button>
     </form>
-    <div class="login-hint" id="loginHint">
-      Contraseña: <code>brothers2024</code>
+    <div class="login-hint" id="loginHint" style="display:none;">
+      Token: se pedirá solo una vez en este dispositivo.
     </div>
   </div>
 </div>
@@ -349,6 +355,7 @@ img { display: block; max-width: 100%; }
       Gym<span>·</span>Brothers
     </div>
     <div class="topbar-actions">
+      <div class="user-badge" id="userBadge">Entrenador</div>
       <div class="sync-indicator" id="syncIndicator"><div class="spinner"></div> Sincronizando...</div>
       <button class="topbar-btn is-danger" id="logoutBtn">Salir</button>
     </div>
@@ -484,13 +491,27 @@ const GITHUB_REPO = 'GymBrothers';
 const API_BASE = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/`;
 
 const STORAGE_KEYS = { 
-  PASSWORD: 'gb_panel_password', 
   SESSION: 'gb_session_active',
-  TOKEN: 'gb_saved_token' // Guardamos el token acá para no pedirlo cada vez
+  TOKEN: 'gb_saved_token',
+  USER_ID: 'gb_current_user_id',
+  USER_NAME: 'gb_current_user_name'
 };
-const DEFAULT_PASSWORD = 'brothers2024';
+
+// ====== CONFIGURACIÓN DE USUARIOS ======
+// Acá definís las contraseñas. Cada contraseña crea un usuario distinto.
+// Cambiá estas contraseñas por las que vos quieras usar.
+// El 'id' es el nombre de la carpeta que se va a crear en tu GitHub (sin espacios, en minúscula).
+// El 'name' es el nombre que va a aparecer en la pantalla.
+const USERS = {
+  'y28c1992': { id: 'admin', name: 'Rincon (Dueño)' },
+  'clave_para_amigo1':     { id: 'amigo1', name: 'Entrenador Juan' },
+  'clave_para_amigo2':     { id: 'amigo2', name: 'Entrenadora Maria' }
+};
+// ======================================
 
 let gitToken = null;
+let currentUserId = null;
+let currentUserName = '';
 let clientsIndex = [];
 let currentClientId = null;
 let confirmCallback = null;
@@ -579,10 +600,10 @@ async function apiDelete(path, sha, message) {
   return res.json();
 }
 
-/* ============ DATA LAYER ============ */
+/* ============ DATA LAYER (USER ISOLATION) ============ */
 async function getIndex() {
   try {
-    const file = await apiGet('clients/index.json');
+    const file = await apiGet(`clients/${currentUserId}/index.json`);
     if (!file) return [];
     return JSON.parse(decodeBase64(file.content));
   } catch (e) {
@@ -591,42 +612,40 @@ async function getIndex() {
 }
 
 async function saveIndex(newIndex) {
-  const existing = await apiGet('clients/index.json');
+  const path = `clients/${currentUserId}/index.json`;
+  const existing = await apiGet(path);
   const sha = existing ? existing.sha : null;
-  await apiPut('clients/index.json', newIndex, sha, 'Update clients index');
+  await apiPut(path, newIndex, sha, `Update index for ${currentUserName}`);
 }
 
 async function getClient(id) {
-  const file = await apiGet(`clients/${id}.json`);
+  const file = await apiGet(`clients/${currentUserId}/${id}.json`);
   if (!file) return null;
   return JSON.parse(decodeBase64(file.content));
 }
 
 async function saveClientData(client) {
-  const path = `clients/${client.id}.json`;
+  const path = `clients/${currentUserId}/${client.id}.json`;
   const existing = await apiGet(path);
   const sha = existing ? existing.sha : null;
   await apiPut(path, client, sha, `Update client: ${client.name}`);
 }
 
 async function deleteClientData(id) {
-  const path = `clients/${id}.json`;
+  const path = `clients/${currentUserId}/${id}.json`;
   const existing = await apiGet(path);
   if (!existing) return;
   await apiDelete(path, existing.sha, `Delete client: ${id}`);
 }
 
 /* ============ LOGIN ============ */
-function getPassword() { return localStorage.getItem(STORAGE_KEYS.PASSWORD) || DEFAULT_PASSWORD; }
-function setPassword(pw) { localStorage.setItem(STORAGE_KEYS.PASSWORD, pw); }
-
 function checkLogin() {
-  // Revisamos si la sesión está activa
   const isLoggedIn = sessionStorage.getItem(STORAGE_KEYS.SESSION) === 'true';
-  // Cargamos el token guardado si existe
   const savedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
+  currentUserId = sessionStorage.getItem(STORAGE_KEYS.USER_ID);
+  currentUserName = sessionStorage.getItem(STORAGE_KEYS.USER_NAME) || 'Entrenador';
   
-  if (isLoggedIn && savedToken) {
+  if (isLoggedIn && savedToken && currentUserId) {
     gitToken = savedToken;
     showApp();
   } else {
@@ -644,19 +663,18 @@ function showLogin(savedToken = null) {
   const loginHint = document.getElementById('loginHint');
   
   if (savedToken) {
-    // Si ya hay token guardado, ocultamos el campo
     tokenWrap.style.display = 'none';
-    loginHint.innerHTML = 'Contraseña: <code>brothers2024</code><br>Token recordado en este dispositivo.';
+    loginHint.style.display = 'block';
   } else {
-    // Si no hay token, lo pedimos
     tokenWrap.style.display = 'block';
-    loginHint.innerHTML = 'Contraseña: <code>brothers2024</code><br>Token: se pedirá solo una vez en este dispositivo.';
+    loginHint.style.display = 'none';
   }
 }
 
 function showApp() {
   document.getElementById('loginScreen').classList.add('is-hidden');
   document.getElementById('app').classList.add('is-active');
+  document.getElementById('userBadge').textContent = currentUserName;
   renderDashboard();
 }
 
@@ -666,11 +684,13 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   const errEl = document.getElementById('loginError');
   const btn = document.getElementById('loginBtn');
   
-  if (inputPass !== getPassword()) {
-    errEl.textContent = 'Contraseña del panel incorrecta.';
+  // 1. Verificar si la contraseña existe en nuestro diccionario USERS
+  if (!USERS[inputPass]) {
+    errEl.textContent = 'Contraseña incorrecta.';
     return;
   }
 
+  // 2. Verificar token
   let tokenToUse = localStorage.getItem(STORAGE_KEYS.TOKEN);
   if (!tokenToUse) {
     tokenToUse = document.getElementById('tokenInput').value.trim();
@@ -683,14 +703,19 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div> <span>Verificando...</span>';
   
-  // Verificamos que el token funcione de verdad
+  // 3. Asignar el usuario actual y el token temporalmente para probar
+  currentUserId = USERS[inputPass].id;
+  currentUserName = USERS[inputPass].name;
   gitToken = tokenToUse;
+
   try {
-    const test = await apiGet('clients/index.json');
+    const test = await apiGet(`clients/${currentUserId}/index.json`);
     if (test || test === null) {
-      // Si funcionó, lo guardamos para siempre en este dispositivo
+      // Si funcionó, guardamos todo
       localStorage.setItem(STORAGE_KEYS.TOKEN, gitToken);
       sessionStorage.setItem(STORAGE_KEYS.SESSION, 'true');
+      sessionStorage.setItem(STORAGE_KEYS.USER_ID, currentUserId);
+      sessionStorage.setItem(STORAGE_KEYS.USER_NAME, currentUserName);
       errEl.textContent = '';
       showApp();
     }
@@ -698,6 +723,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     errEl.textContent = 'Token inválido o sin permisos sobre el repo.';
     localStorage.removeItem(STORAGE_KEYS.TOKEN);
     gitToken = null;
+    currentUserId = null;
     showLogin(false);
   } finally {
     btn.disabled = false;
@@ -706,9 +732,11 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
-  // No borramos el token del localStorage, solo cerramos la sesión actual
   sessionStorage.removeItem(STORAGE_KEYS.SESSION);
+  sessionStorage.removeItem(STORAGE_KEYS.USER_ID);
+  sessionStorage.removeItem(STORAGE_KEYS.USER_NAME);
   gitToken = null;
+  currentUserId = null;
   checkLogin();
 });
 
