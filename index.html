@@ -101,11 +101,6 @@ img { display: block; max-width: 100%; }
   margin-top: -0.5rem; margin-bottom: 1.5rem;
   font-family: 'IBM Plex Mono', monospace; min-height: 1rem;
 }
-.login-hint {
-  font-size: 0.78rem; color: rgba(255,255,255,0.4);
-  margin-top: 2rem; text-align: center; padding-top: 1.5rem;
-  border-top: 1px solid rgba(255,255,255,0.08); line-height: 1.5;
-}
 .spinner {
   width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3);
   border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
@@ -332,18 +327,9 @@ img { display: block; max-width: 100%; }
     <form id="loginForm">
       <label class="login-label">Tu contraseña</label>
       <input type="password" class="login-input" id="passwordInput" placeholder="••••••••••" autofocus>
-      
-      <div id="tokenWrap" style="display: none;">
-        <label class="login-label">Token de GitHub (solo la primera vez)</label>
-        <input type="password" class="login-input" id="tokenInput" placeholder="github_pat_...">
-      </div>
-      
       <div class="login-error" id="loginError"></div>
       <button type="submit" class="login-btn" id="loginBtn"><span>Entrar al panel →</span></button>
     </form>
-    <div class="login-hint" id="loginHint" style="display:none;">
-      Token: se pedirá solo una vez en este dispositivo.
-    </div>
   </div>
 </div>
 
@@ -490,26 +476,27 @@ const GITHUB_OWNER = 'RinconCity';
 const GITHUB_REPO = 'GymBrothers';
 const API_BASE = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/`;
 
+// =====================================================================
+// CONFIGURACIÓN DE TOKEN Y USUARIOS
+// =====================================================================
+// PEGÁ ACÁ TU TOKEN DE GITHUB ENTRE LAS COMILLAS
+const GIT_TOKEN = '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'; 
+
+// Acá definís las contraseñas. Cada contraseña crea un usuario distinto.
+const USERS = {
+  'y28c1992Y@': { id: 'admin', name: 'YanDyNewMan' },
+  'clave_para_amigo1':     { id: 'amigo1', name: 'Entrenador Juan' },
+  'clave_para_amigo2':     { id: 'amigo2', name: 'Entrenadora Maria' }
+};
+// =====================================================================
+
 const STORAGE_KEYS = { 
   SESSION: 'gb_session_active',
-  TOKEN: 'gb_saved_token',
   USER_ID: 'gb_current_user_id',
   USER_NAME: 'gb_current_user_name'
 };
 
-// ====== CONFIGURACIÓN DE USUARIOS ======
-// Acá definís las contraseñas. Cada contraseña crea un usuario distinto.
-// Cambiá estas contraseñas por las que vos quieras usar.
-// El 'id' es el nombre de la carpeta que se va a crear en tu GitHub (sin espacios, en minúscula).
-// El 'name' es el nombre que va a aparecer en la pantalla.
-const USERS = {
-  'y28c1992': { id: 'admin', name: 'Rincon (Dueño)' },
-  'clave_para_amigo1':     { id: 'amigo1', name: 'Entrenador Juan' },
-  'clave_para_amigo2':     { id: 'amigo2', name: 'Entrenadora Maria' }
-};
-// ======================================
-
-let gitToken = null;
+let gitToken = GIT_TOKEN; // El token queda fijo en el código
 let currentUserId = null;
 let currentUserName = '';
 let clientsIndex = [];
@@ -545,7 +532,6 @@ function showToast(message, type = 'success', duration = 2800) {
     toastTimer = setTimeout(() => toast.classList.remove('is-visible'), duration);
   }
 }
-function hideToast() { document.getElementById('toast').classList.remove('is-visible'); }
 
 /* ============ MODALS ============ */
 function openModal(id) { document.getElementById(id).classList.add('is-open'); document.body.style.overflow = 'hidden'; }
@@ -641,34 +627,21 @@ async function deleteClientData(id) {
 /* ============ LOGIN ============ */
 function checkLogin() {
   const isLoggedIn = sessionStorage.getItem(STORAGE_KEYS.SESSION) === 'true';
-  const savedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
   currentUserId = sessionStorage.getItem(STORAGE_KEYS.USER_ID);
   currentUserName = sessionStorage.getItem(STORAGE_KEYS.USER_NAME) || 'Entrenador';
   
-  if (isLoggedIn && savedToken && currentUserId) {
-    gitToken = savedToken;
+  if (isLoggedIn && currentUserId) {
     showApp();
   } else {
-    showLogin(savedToken);
+    showLogin();
   }
 }
 
-function showLogin(savedToken = null) {
+function showLogin() {
   document.getElementById('loginScreen').classList.remove('is-hidden');
   document.getElementById('app').classList.remove('is-active');
   document.getElementById('passwordInput').value = '';
-  document.getElementById('tokenInput').value = '';
-  
-  const tokenWrap = document.getElementById('tokenWrap');
-  const loginHint = document.getElementById('loginHint');
-  
-  if (savedToken) {
-    tokenWrap.style.display = 'none';
-    loginHint.style.display = 'block';
-  } else {
-    tokenWrap.style.display = 'block';
-    loginHint.style.display = 'none';
-  }
+  document.getElementById('loginError').textContent = '';
 }
 
 function showApp() {
@@ -690,29 +663,18 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     return;
   }
 
-  // 2. Verificar token
-  let tokenToUse = localStorage.getItem(STORAGE_KEYS.TOKEN);
-  if (!tokenToUse) {
-    tokenToUse = document.getElementById('tokenInput').value.trim();
-    if (!tokenToUse.startsWith('github_pat_')) {
-      errEl.textContent = 'El token de GitHub no parece válido.';
-      return;
-    }
-  }
-
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div> <span>Verificando...</span>';
   
-  // 3. Asignar el usuario actual y el token temporalmente para probar
+  // 2. Asignar el usuario actual
   currentUserId = USERS[inputPass].id;
   currentUserName = USERS[inputPass].name;
-  gitToken = tokenToUse;
 
   try {
+    // Hacemos un test rápido para asegurar que el token de GitHub sigue siendo válido
     const test = await apiGet(`clients/${currentUserId}/index.json`);
     if (test || test === null) {
-      // Si funcionó, guardamos todo
-      localStorage.setItem(STORAGE_KEYS.TOKEN, gitToken);
+      // Si funcionó, guardamos la sesión
       sessionStorage.setItem(STORAGE_KEYS.SESSION, 'true');
       sessionStorage.setItem(STORAGE_KEYS.USER_ID, currentUserId);
       sessionStorage.setItem(STORAGE_KEYS.USER_NAME, currentUserName);
@@ -720,11 +682,9 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       showApp();
     }
   } catch (err) {
-    errEl.textContent = 'Token inválido o sin permisos sobre el repo.';
-    localStorage.removeItem(STORAGE_KEYS.TOKEN);
-    gitToken = null;
+    errEl.textContent = 'Error de conexión o token vencido.';
     currentUserId = null;
-    showLogin(false);
+    showLogin();
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<span>Entrar al panel →</span>';
@@ -735,7 +695,6 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   sessionStorage.removeItem(STORAGE_KEYS.SESSION);
   sessionStorage.removeItem(STORAGE_KEYS.USER_ID);
   sessionStorage.removeItem(STORAGE_KEYS.USER_NAME);
-  gitToken = null;
   currentUserId = null;
   checkLogin();
 });
