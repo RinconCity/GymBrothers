@@ -327,15 +327,16 @@ img { display: block; max-width: 100%; }
       <label class="login-label">Contraseña del panel</label>
       <input type="password" class="login-input" id="passwordInput" placeholder="••••••••••" autofocus>
       
-      <label class="login-label">Token de GitHub</label>
-      <input type="password" class="login-input" id="tokenInput" placeholder="github_pat_...">
+      <div id="tokenWrap" style="display: none;">
+        <label class="login-label">Token de GitHub (solo la primera vez)</label>
+        <input type="password" class="login-input" id="tokenInput" placeholder="github_pat_...">
+      </div>
       
       <div class="login-error" id="loginError"></div>
       <button type="submit" class="login-btn" id="loginBtn"><span>Entrar al panel →</span></button>
     </form>
-    <div class="login-hint">
-      Contraseña: <code>brothers2024</code><br>
-      Token: pegalo aquí arriba (no se guarda en el código, solo en esta sesión).
+    <div class="login-hint" id="loginHint">
+      Contraseña: <code>brothers2024</code>
     </div>
   </div>
 </div>
@@ -482,7 +483,11 @@ const GITHUB_OWNER = 'RinconCity';
 const GITHUB_REPO = 'GymBrothers';
 const API_BASE = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/`;
 
-const STORAGE_KEYS = { PASSWORD: 'gb_panel_password', SESSION: 'gb_panel_session' };
+const STORAGE_KEYS = { 
+  PASSWORD: 'gb_panel_password', 
+  SESSION: 'gb_session_active',
+  TOKEN: 'gb_saved_token' // Guardamos el token acá para no pedirlo cada vez
+};
 const DEFAULT_PASSWORD = 'brothers2024';
 
 let gitToken = null;
@@ -504,7 +509,6 @@ function calcIMC(weight, height) { if (!weight || !height) return null; const h 
 function getInitials(name) { if (!name) return '?'; const p = name.trim().split(' '); return p.length === 1 ? p[0].charAt(0).toUpperCase() : (p[0].charAt(0) + p[p.length - 1].charAt(0)).toUpperCase(); }
 function escapeHtml(str) { if (str == null) return ''; return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); }
 
-// Base64 con soporte para Unicode (tildes, ñ)
 function encodeBase64(str) { return btoa(unescape(encodeURIComponent(str))); }
 function decodeBase64(b64) { return decodeURIComponent(escape(atob(b64))); }
 
@@ -582,7 +586,7 @@ async function getIndex() {
     if (!file) return [];
     return JSON.parse(decodeBase64(file.content));
   } catch (e) {
-    return []; // Si no existe el index, está vacío
+    return []; 
   }
 }
 
@@ -617,20 +621,39 @@ function getPassword() { return localStorage.getItem(STORAGE_KEYS.PASSWORD) || D
 function setPassword(pw) { localStorage.setItem(STORAGE_KEYS.PASSWORD, pw); }
 
 function checkLogin() {
-  const token = sessionStorage.getItem('gb_session_token');
-  if (token) {
-    gitToken = token;
+  // Revisamos si la sesión está activa
+  const isLoggedIn = sessionStorage.getItem(STORAGE_KEYS.SESSION) === 'true';
+  // Cargamos el token guardado si existe
+  const savedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
+  
+  if (isLoggedIn && savedToken) {
+    gitToken = savedToken;
     showApp();
   } else {
-    showLogin();
+    showLogin(savedToken);
   }
 }
-function showLogin() {
+
+function showLogin(savedToken = null) {
   document.getElementById('loginScreen').classList.remove('is-hidden');
   document.getElementById('app').classList.remove('is-active');
   document.getElementById('passwordInput').value = '';
   document.getElementById('tokenInput').value = '';
+  
+  const tokenWrap = document.getElementById('tokenWrap');
+  const loginHint = document.getElementById('loginHint');
+  
+  if (savedToken) {
+    // Si ya hay token guardado, ocultamos el campo
+    tokenWrap.style.display = 'none';
+    loginHint.innerHTML = 'Contraseña: <code>brothers2024</code><br>Token recordado en este dispositivo.';
+  } else {
+    // Si no hay token, lo pedimos
+    tokenWrap.style.display = 'block';
+    loginHint.innerHTML = 'Contraseña: <code>brothers2024</code><br>Token: se pedirá solo una vez en este dispositivo.';
+  }
 }
+
 function showApp() {
   document.getElementById('loginScreen').classList.add('is-hidden');
   document.getElementById('app').classList.add('is-active');
@@ -640,7 +663,6 @@ function showApp() {
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const inputPass = document.getElementById('passwordInput').value;
-  const inputToken = document.getElementById('tokenInput').value.trim();
   const errEl = document.getElementById('loginError');
   const btn = document.getElementById('loginBtn');
   
@@ -648,26 +670,35 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     errEl.textContent = 'Contraseña del panel incorrecta.';
     return;
   }
-  if (!inputToken.startsWith('github_pat_')) {
-    errEl.textContent = 'El token de GitHub no parece válido.';
-    return;
+
+  let tokenToUse = localStorage.getItem(STORAGE_KEYS.TOKEN);
+  if (!tokenToUse) {
+    tokenToUse = document.getElementById('tokenInput').value.trim();
+    if (!tokenToUse.startsWith('github_pat_')) {
+      errEl.textContent = 'El token de GitHub no parece válido.';
+      return;
+    }
   }
 
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div> <span>Verificando...</span>';
   
-  // Test token
-  gitToken = inputToken;
+  // Verificamos que el token funcione de verdad
+  gitToken = tokenToUse;
   try {
     const test = await apiGet('clients/index.json');
     if (test || test === null) {
-      sessionStorage.setItem('gb_session_token', gitToken);
+      // Si funcionó, lo guardamos para siempre en este dispositivo
+      localStorage.setItem(STORAGE_KEYS.TOKEN, gitToken);
+      sessionStorage.setItem(STORAGE_KEYS.SESSION, 'true');
       errEl.textContent = '';
       showApp();
     }
   } catch (err) {
     errEl.textContent = 'Token inválido o sin permisos sobre el repo.';
+    localStorage.removeItem(STORAGE_KEYS.TOKEN);
     gitToken = null;
+    showLogin(false);
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<span>Entrar al panel →</span>';
@@ -675,9 +706,10 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
-  sessionStorage.removeItem('gb_session_token');
+  // No borramos el token del localStorage, solo cerramos la sesión actual
+  sessionStorage.removeItem(STORAGE_KEYS.SESSION);
   gitToken = null;
-  showLogin();
+  checkLogin();
 });
 
 /* ============ DASHBOARD ============ */
@@ -689,7 +721,6 @@ async function renderDashboard() {
   clientsIndex = await getIndex();
   setSyncing(false);
 
-  // Sort by name
   clientsIndex.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
   document.getElementById('statTotal').textContent = clientsIndex.length;
@@ -744,13 +775,11 @@ async function renderDashboard() {
 }
 
 document.getElementById('searchInput').addEventListener('input', () => {
-  // Re-render local filter without fetching
   const grid = document.getElementById('clientsGrid');
   const search = document.getElementById('searchInput').value.toLowerCase().trim();
   let filtered = clientsIndex;
   if (search) filtered = clientsIndex.filter(c => c.name && c.name.toLowerCase().includes(search));
   
-  // Simple local re-render
   if (filtered.length === 0) {
     grid.innerHTML = `<div class="empty-state"><h3>Sin resultados</h3></div>`;
     return;
@@ -780,7 +809,6 @@ function openClientForm(clientId = null) {
   const title = document.getElementById('clientModalTitle');
   document.getElementById('clientId').value = clientId || '';
 
-  // Fetch from index first, if editing full data is needed fetch the file
   if (clientId) {
     const c = clientsIndex.find(x => x.id === clientId);
     if (!c) return;
@@ -818,7 +846,6 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
   try {
     let clientData;
     if (id) {
-      // Edit existing
       clientData = await getClient(id);
       clientData.name = name;
       clientData.birthdate = document.getElementById('clientBirthdate').value;
@@ -829,7 +856,6 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
       clientData.startDate = document.getElementById('clientStartDate').value || todayISO();
       clientData.notes = document.getElementById('clientNotes').value.trim();
     } else {
-      // New
       clientData = {
         id: uid(),
         name: name,
@@ -848,7 +874,6 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
 
     await saveClientData(clientData);
 
-    // Update Index
     const idx = clientsIndex.findIndex(c => c.id === clientData.id);
     const indexEntry = {
       id: clientData.id,
@@ -922,7 +947,6 @@ async function renderClientDetail(clientId) {
     return;
   }
 
-  // Sync index with full data for edit form
   const idx = clientsIndex.findIndex(x => x.id === c.id);
   if (idx > -1) {
     clientsIndex[idx].notes = c.notes;
@@ -1058,7 +1082,6 @@ async function renderClientDetail(clientId) {
           c.measurements = c.measurements.filter(x => x.id !== mid);
           await saveClientData(c);
           
-          // Update index
           const idx = clientsIndex.findIndex(x => x.id === c.id);
           if (idx > -1) {
             clientsIndex[idx].measurementsCount = c.measurements.length;
@@ -1109,7 +1132,6 @@ async function handlePhotoUpload(e) {
         c.photo = dataUrl;
         await saveClientData(c);
         
-        // Update index photo
         const idx = clientsIndex.findIndex(x => x.id === c.id);
         if (idx > -1) {
           clientsIndex[idx].photo = dataUrl;
@@ -1141,9 +1163,6 @@ function openMeasurementForm(clientId, measurementId = null) {
   ['measurementDate','mWeight','mBodyFat','mMuscle','mChest','mWaist','mHip','mNeck','mArmL','mArmR','mThighL','mThighR','mCalfL','mCalfR','mNotes']
     .forEach(id => document.getElementById(id).value = '');
 
-  // Need full measurements array, but index doesn't have it. 
-  // For pre-fill, we fetch the client data. 
-  // To avoid blocking UI, we do it async and fill as we go.
   (async () => {
     const fullClient = await getClient(clientId);
     if (measurementId) {
@@ -1247,7 +1266,6 @@ document.getElementById('saveMeasurementBtn').addEventListener('click', async ()
 
     await saveClientData(c);
 
-    // Update Index Summary
     const sorted = [...c.measurements].sort((a,b) => (b.date||'').localeCompare(a.date||''));
     const firstS = [...c.measurements].sort((a,b) => (a.date||'').localeCompare(b.date||''));
     
