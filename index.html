@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gym Brothers · Panel del Entrenador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+
+<style>
+:root {
+  --color-bg-primary:    #F2F2F2;
+  --color-bg-secondary:  #111111;
+  --color-accent:        #FF2D8F;
+  --color-text-primary:  #111111;
+  --color-text-secondary:#6E6E6E;
+  --color-border:        rgba(17,17,17,0.15);
+  --color-border-strong: rgba(17,17,17,0.65);
+  --color-danger:        #E63946;
+  --color-success:       #2A9D8F;
+  --ease-quiet:    cubic-bezier(.22, 1, .36, 1);
+  --ease-precise:  cubic-bezier(.4, 0, .2, 1);
+  --ease-emphasis: cubic-bezier(.16, 1, .3, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+::selection { background: var(--color-accent); color: #fff; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, textarea, select { font-family: inherit; }
+img { display: block; max-width: 100%; }
+
+/* ============ LOGIN ============ */
+.login-screen {
+  position: fixed; inset: 0;
+  background: var(--color-bg-secondary);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 2rem;
+}
+.login-screen.is-hidden { display: none; }
+.login-bg-grid {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px; pointer-events: none;
+}
+.login-bg-grid::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%;
+  background: radial-gradient(circle at 50% 100%, rgba(255,45,143,0.15), transparent 60%);
+  pointer-events: none;
+}
+.login-card {
+  position: relative; z-index: 2;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 3rem 2.5rem; width: 100%; max-width: 420px;
+  backdrop-filter: blur(8px);
+}
+.login-brand {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: 1.8rem; color: #fff; text-transform: uppercase;
+  letter-spacing: -0.02em; margin-bottom: 0.5rem;
+}
+.login-brand span { color: var(--color-accent); }
+.login-sub {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
+  text-transform: uppercase; letter-spacing: 0.18em;
+  color: rgba(255,255,255,0.5); margin-bottom: 2.5rem;
+}
+.login-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem;
+  text-transform: uppercase; letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.6); margin-bottom: 0.6rem; display: block;
+}
+.login-input {
+  width: 100%; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.15); color: #fff;
+  padding: 1rem 1.2rem; font-size: 1rem; outline: none;
+  transition: border-color 300ms var(--ease-precise); margin-bottom: 1.5rem;
+}
+.login-input:focus { border-color: var(--color-accent); }
+.login-input::placeholder { color: rgba(255,255,255,0.3); }
+.login-btn {
+  width: 100%; padding: 1.1rem; background: var(--color-accent);
+  color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;
+  text-transform: uppercase; letter-spacing: 0.18em; font-weight: 500;
+  transition: background 300ms var(--ease-precise); display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.login-btn:hover { background: #ff4f9f; }
+.login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.login-error {
+  color: var(--color-accent); font-size: 0.82rem;
+  margin-top: -0.5rem; margin-bottom: 1.5rem;
+  font-family: 'IBM Plex Mono', monospace; min-height: 1rem;
+}
+.login-hint {
+  font-size: 0.78rem; color: rgba(255,255,255,0.4);
+  margin-top: 2rem; text-align: center; padding-top: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.08); line-height: 1.5;
+}
+.spinner {
+  width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ============ APP SHELL ============ */
+.app { display: none; min-height: 100vh; }
+.app.is-active { display: block; }
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--color-bg-secondary); color: #fff;
+  padding: 1.2rem 2rem; display: flex; align-items: center; justify-content: space-between;
+  gap: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.topbar-brand {
+  font-family: 'Montserrat', sans-serif; font-weight: 900;
+  font-size: 1.1rem; text-transform: uppercase; letter-spacing: -0.02em;
+  cursor: pointer; display: flex; align-items: center; gap: 0.5rem;
+}
+.topbar-brand span { color: var(--color-accent); }
+.topbar-brand .back-arrow {
+  font-size: 0.9rem; opacity: 0; width: 0; overflow: hidden;
+  transition: opacity 300ms var(--ease-precise), width 300ms var(--ease-precise);
+}
+.topbar-brand.has-back .back-arrow { opacity: 1; width: 1.2rem; }
+.topbar-actions { display: flex; align-items: center; gap: 0.5rem; }
+.topbar-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
+  text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.7);
+  padding: 0.6rem 0.9rem; border: 1px solid rgba(255,255,255,0.15);
+  transition: all 300ms var(--ease-precise);
+}
+.topbar-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
+.topbar-btn.is-danger:hover { border-color: var(--color-danger); color: var(--color-danger); }
+.sync-indicator {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--color-accent);
+  display: flex; align-items: center; gap: 0.5rem; opacity: 0; transition: opacity 0.3s;
+}
+.sync-indicator.is-syncing { opacity: 1; }
+
+/* ============ DASHBOARD ============ */
+.dashboard { padding: 3rem 2rem 6rem; max-width: 1400px; margin: 0 auto; }
+.dashboard-header { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 3rem; }
+.dashboard-title-block .label { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--color-text-secondary); display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+.dashboard-title-block .label::before { content: ''; width: 2rem; height: 1px; background: var(--color-accent); }
+.dashboard-title { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 0.9; letter-spacing: -0.03em; text-transform: uppercase; }
+.dashboard-title .accent { color: var(--color-accent); }
+.dashboard-stats { display: flex; gap: 2rem; font-family: 'IBM Plex Mono', monospace; }
+.dash-stat .num { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 2rem; line-height: 1; letter-spacing: -0.03em; }
+.dash-stat .num .accent { color: var(--color-accent); }
+.dash-stat .lbl { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--color-text-secondary); margin-top: 0.4rem; }
+
+.dashboard-toolbar { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+.search-input { flex: 1; min-width: 200px; padding: 0.85rem 1.2rem; background: #fff; border: 1px solid var(--color-border); font-size: 0.9rem; outline: none; transition: border-color 300ms var(--ease-precise); }
+.search-input:focus { border-color: var(--color-accent); }
+.add-client-btn { padding: 0.85rem 1.5rem; background: var(--color-bg-secondary); color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 500; display: inline-flex; align-items: center; gap: 0.6rem; transition: background 300ms var(--ease-precise); }
+.add-client-btn:hover { background: var(--color-accent); }
+.add-client-btn::before { content: '+'; font-size: 1.1rem; line-height: 1; }
+
+.clients-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; }
+.client-card { background: #fff; border: 1px solid var(--color-border); padding: 1.5rem; cursor: pointer; display: flex; flex-direction: column; transition: border-color 400ms var(--ease-emphasis), transform 400ms var(--ease-emphasis); position: relative; }
+.client-card:hover { border-color: var(--color-accent); transform: translateY(-4px); }
+.client-card-photo { width: 100%; aspect-ratio: 1; background: #f0f0f0; margin-bottom: 1.25rem; overflow: hidden; position: relative; }
+.client-card-photo img { width: 100%; height: 100%; object-fit: cover; }
+.client-card-photo .placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--color-bg-secondary); color: rgba(255,255,255,0.3); font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 3rem; }
+.client-card-name { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.15rem; text-transform: uppercase; letter-spacing: -0.01em; margin-bottom: 0.3rem; }
+.client-card-goal { font-size: 0.82rem; color: var(--color-text-secondary); margin-bottom: 1rem; line-height: 1.4; min-height: 2.4em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.client-card-meta { display: flex; justify-content: space-between; padding-top: 0.85rem; border-top: 1px solid var(--color-border); font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-secondary); }
+.progress-indicator { display: inline-flex; align-items: center; gap: 0.3rem; }
+.progress-indicator.up { color: var(--color-success); }
+.progress-indicator.down { color: var(--color-danger); }
+.progress-indicator.flat { color: var(--color-text-secondary); }
+.progress-indicator.new { color: var(--color-accent); }
+
+.empty-state { grid-column: 1 / -1; text-align: center; padding: 5rem 2rem; border: 1px dashed var(--color-border-strong); background: rgba(255,255,255,0.5); }
+.empty-state h3 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.5rem; text-transform: uppercase; margin-bottom: 0.5rem; }
+.empty-state p { color: var(--color-text-secondary); font-size: 0.9rem; max-width: 32rem; margin: 0 auto 2rem; line-height: 1.6; }
+
+/* ============ CLIENT DETAIL ============ */
+.client-detail { padding: 2rem 2rem 6rem; max-width: 1400px; margin: 0 auto; }
+.client-back { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--color-text-secondary); margin-bottom: 2rem; transition: color 300ms var(--ease-precise), gap 300ms var(--ease-precise); }
+.client-back:hover { color: var(--color-accent); gap: 0.8rem; }
+
+.client-header { display: grid; grid-template-columns: 240px 1fr auto; gap: 2.5rem; background: #fff; border: 1px solid var(--color-border); padding: 2rem; margin-bottom: 2rem; align-items: start; }
+.client-photo-wrap { position: relative; aspect-ratio: 1; background: #f0f0f0; overflow: hidden; }
+.client-photo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.client-photo-wrap .placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--color-bg-secondary); color: rgba(255,255,255,0.3); font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 4rem; }
+.client-photo-edit { position: absolute; bottom: 0.5rem; right: 0.5rem; background: var(--color-accent); color: #fff; padding: 0.5rem 0.75rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; }
+.client-photo-edit input { display: none; }
+.client-info-block .label { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--color-text-secondary); margin-bottom: 0.5rem; }
+.client-info-block .name { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: clamp(2rem, 4vw, 3rem); line-height: 0.95; letter-spacing: -0.03em; text-transform: uppercase; margin-bottom: 0.5rem; }
+.client-info-block .goal-line { font-size: 1rem; color: var(--color-text-primary); margin-bottom: 1.5rem; line-height: 1.5; max-width: 40rem; }
+.client-info-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem 1.5rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border); }
+.info-cell .lbl { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-text-secondary); margin-bottom: 0.25rem; }
+.info-cell .val { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem; }
+.client-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+.action-btn { padding: 0.7rem 1.1rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; border: 1px solid var(--color-border-strong); background: #fff; transition: all 300ms var(--ease-precise); text-align: center; }
+.action-btn:hover { background: var(--color-bg-secondary); color: #fff; border-color: var(--color-bg-secondary); }
+.action-btn.primary { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+.action-btn.primary:hover { background: var(--color-bg-secondary); border-color: var(--color-bg-secondary); }
+.action-btn.danger:hover { background: var(--color-danger); color: #fff; border-color: var(--color-danger); }
+
+.section-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; }
+.section-head .label { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--color-text-secondary); display: flex; align-items: center; gap: 0.75rem; }
+.section-head .label::before { content: ''; width: 2rem; height: 1px; background: var(--color-accent); }
+.section-head h2 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: clamp(1.4rem, 2.5vw, 2rem); letter-spacing: -0.02em; text-transform: uppercase; margin-top: 0.5rem; }
+.section-head h2 .accent { color: var(--color-accent); }
+
+.progress-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--color-border); border: 1px solid var(--color-border); }
+.progress-card { background: #fff; padding: 1.5rem 1.25rem; }
+.pc-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-text-secondary); margin-bottom: 0.5rem; }
+.pc-current { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.8rem; line-height: 1; letter-spacing: -0.03em; }
+.pc-current .unit { font-size: 0.7rem; font-family: 'IBM Plex Mono', monospace; font-weight: 500; margin-left: 0.25rem; color: var(--color-text-secondary); }
+.pc-delta { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; margin-top: 0.6rem; display: inline-flex; align-items: center; gap: 0.3rem; }
+.pc-delta.up { color: var(--color-success); }
+.pc-delta.down { color: var(--color-success); }
+.pc-delta.bad-up { color: var(--color-danger); }
+.pc-delta.bad-down { color: var(--color-danger); }
+.pc-delta.flat { color: var(--color-text-secondary); }
+.pc-delta.none { color: var(--color-accent); }
+
+.measurements-section { margin-bottom: 3rem; }
+.measurements-wrap { background: #fff; border: 1px solid var(--color-border); overflow-x: auto; }
+.measurements-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 900px; }
+.measurements-table th, .measurements-table td { padding: 1rem 0.85rem; text-align: left; border-right: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); vertical-align: top; white-space: nowrap; }
+.measurements-table th:last-child, .measurements-table td:last-child { border-right: none; }
+.measurements-table tr:last-child td { border-bottom: none; }
+.measurements-table th { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-text-secondary); font-weight: 500; background: #fafafa; position: sticky; top: 0; }
+.measurements-table td.date-cell { font-family: 'IBM Plex Mono', monospace; font-weight: 500; white-space: nowrap; }
+.measurements-table td .val-num { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.92rem; }
+.measurements-table td .val-unit { font-size: 0.7rem; color: var(--color-text-secondary); margin-left: 0.15rem; }
+.measurements-table .delete-measurement { color: var(--color-text-secondary); font-size: 0.7rem; padding: 0.3rem 0.5rem; transition: color 300ms var(--ease-precise); font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; }
+.measurements-table .delete-measurement:hover { color: var(--color-danger); }
+.measurements-empty { padding: 3rem 2rem; text-align: center; color: var(--color-text-secondary); font-size: 0.9rem; }
+
+.notes-section { background: #fff; border: 1px solid var(--color-border); padding: 2rem; margin-bottom: 2rem; }
+.notes-section .label { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.18em; color: var(--color-text-secondary); margin-bottom: 1rem; }
+.notes-content { font-size: 0.95rem; line-height: 1.6; color: var(--color-text-primary); white-space: pre-wrap; }
+.notes-empty { color: var(--color-text-secondary); font-style: italic; font-size: 0.9rem; }
+
+/* ============ MODAL ============ */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(17,17,17,0.7); backdrop-filter: blur(4px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 2rem; opacity: 0; transition: opacity 300ms var(--ease-precise); }
+.modal-backdrop.is-open { display: flex; opacity: 1; }
+.modal { background: var(--color-bg-primary); width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--color-border-strong); transform: translateY(30px); transition: transform 400ms var(--ease-emphasis); }
+.modal-backdrop.is-open .modal { transform: translateY(0); }
+.modal-head { background: var(--color-bg-secondary); color: #fff; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; }
+.modal-head h3 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.2rem; text-transform: uppercase; letter-spacing: -0.01em; }
+.modal-head h3 .accent { color: var(--color-accent); }
+.modal-close { color: #fff; font-size: 1.5rem; width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; transition: color 300ms var(--ease-precise); }
+.modal-close:hover { color: var(--color-accent); }
+.modal-body { padding: 2rem; }
+.modal-foot { padding: 1.5rem 2rem; display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--color-border); background: #fff; position: sticky; bottom: 0; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.form-row.full { grid-template-columns: 1fr; }
+.form-field { display: flex; flex-direction: column; }
+.form-field.full { grid-column: 1 / -1; }
+.form-field label { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-text-secondary); margin-bottom: 0.4rem; }
+.form-field input, .form-field textarea, .form-field select { width: 100%; padding: 0.8rem 0.9rem; background: #fff; border: 1px solid var(--color-border); font-size: 0.9rem; outline: none; transition: border-color 300ms var(--ease-precise); font-family: 'Inter', sans-serif; color: var(--color-text-primary); }
+.form-field input:focus, .form-field textarea:focus, .form-field select:focus { border-color: var(--color-accent); }
+.form-field textarea { resize: vertical; min-height: 100px; }
+.form-divider { margin: 1.5rem 0; border-top: 1px solid var(--color-border); padding-top: 1.5rem; }
+.form-divider-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.18em; color: var(--color-accent); margin-bottom: 1rem; }
+
+.btn { padding: 0.85rem 1.5rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 500; transition: all 300ms var(--ease-precise); display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.btn-primary { background: var(--color-accent); color: #fff; border: 1px solid var(--color-accent); }
+.btn-primary:hover { background: var(--color-bg-secondary); border-color: var(--color-bg-secondary); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-secondary { background: transparent; color: var(--color-text-primary); border: 1px solid var(--color-border-strong); }
+.btn-secondary:hover { background: var(--color-bg-secondary); color: #fff; border-color: var(--color-bg-secondary); }
+.btn-danger { background: transparent; color: var(--color-danger); border: 1px solid var(--color-danger); }
+.btn-danger:hover { background: var(--color-danger); color: #fff; }
+
+.toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--color-bg-secondary); color: #fff; padding: 1rem 1.5rem; border-left: 3px solid var(--color-accent); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; z-index: 500; opacity: 0; transition: opacity 300ms var(--ease-precise), transform 300ms var(--ease-precise); pointer-events: none; display: flex; align-items: center; gap: 0.75rem; }
+.toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.error { border-left-color: var(--color-danger); }
+.toast.success { border-left-color: var(--color-success); }
+
+.confirm-dialog { background: var(--color-bg-primary); max-width: 420px; border: 1px solid var(--color-border-strong); }
+.confirm-dialog .modal-body { text-align: center; padding: 2.5rem 2rem; }
+.confirm-dialog h4 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.3rem; text-transform: uppercase; margin-bottom: 0.75rem; }
+.confirm-dialog p { font-size: 0.9rem; color: var(--color-text-secondary); line-height: 1.5; margin-bottom: 1.5rem; }
+.confirm-actions { display: flex; gap: 0.75rem; justify-content: center; }
+
+@media (max-width: 900px) {
+  .topbar { padding: 1rem 1.25rem; }
+  .topbar-btn { padding: 0.5rem 0.65rem; font-size: 0.65rem; }
+  .dashboard { padding: 2rem 1.25rem 4rem; }
+  .dashboard-stats { gap: 1.5rem; }
+  .client-header { grid-template-columns: 1fr; gap: 1.5rem; padding: 1.5rem; }
+  .client-photo-wrap { max-width: 200px; }
+  .client-info-grid { grid-template-columns: repeat(2, 1fr); }
+  .client-actions { flex-direction: row; flex-wrap: wrap; }
+  .client-actions .action-btn { flex: 1; min-width: 120px; }
+  .client-detail { padding: 1.5rem 1.25rem 4rem; }
+  .form-row { grid-template-columns: 1fr; }
+  .modal-body { padding: 1.5rem; }
+  .modal-foot { padding: 1rem 1.5rem; flex-direction: column-reverse; }
+  .modal-foot .btn { width: 100%; }
+}
+@media (max-width: 600px) {
+  .clients-grid { grid-template-columns: 1fr; }
+  .dashboard-stats { width: 100%; justify-content: space-between; }
+  .client-info-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-bg-grid"></div>
+  <div class="login-card">
+    <div class="login-brand">Gym<span>·</span>Brothers</div>
+    <div class="login-sub">Panel del Entrenador</div>
+    <form id="loginForm">
+      <label class="login-label">Contraseña del panel</label>
+      <input type="password" class="login-input" id="passwordInput" placeholder="••••••••••" autofocus>
+      
+      <label class="login-label">Token de GitHub</label>
+      <input type="password" class="login-input" id="tokenInput" placeholder="github_pat_...">
+      
+      <div class="login-error" id="loginError"></div>
+      <button type="submit" class="login-btn" id="loginBtn"><span>Entrar al panel →</span></button>
+    </form>
+    <div class="login-hint">
+      Contraseña: <code>brothers2024</code><br>
+      Token: pegalo aquí arriba (no se guarda en el código, solo en esta sesión).
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="topbar-brand" id="topbarBrand">
+      <span class="back-arrow">←</span>
+      Gym<span>·</span>Brothers
+    </div>
+    <div class="topbar-actions">
+      <div class="sync-indicator" id="syncIndicator"><div class="spinner"></div> Sincronizando...</div>
+      <button class="topbar-btn is-danger" id="logoutBtn">Salir</button>
+    </div>
+  </header>
+
+  <main class="dashboard" id="dashboardView">
+    <div class="dashboard-header">
+      <div class="dashboard-title-block">
+        <div class="label">Panel de control</div>
+        <h1 class="dashboard-title">Tus <span class="accent">clientes</span>.</h1>
+      </div>
+      <div class="dashboard-stats">
+        <div class="dash-stat"><div class="num" id="statTotal">0</div><div class="lbl">Activos</div></div>
+        <div class="dash-stat"><div class="num" id="statWeek">0</div><div class="lbl">Mediciones (7d)</div></div>
+      </div>
+    </div>
+    <div class="dashboard-toolbar">
+      <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nombre...">
+      <button class="add-client-btn" id="addClientBtn">Nuevo cliente</button>
+    </div>
+    <div class="clients-grid" id="clientsGrid"></div>
+  </main>
+
+  <main class="client-detail" id="clientView" style="display:none">
+    <a class="client-back" id="clientBack">← Volver a clientes</a>
+    <div id="clientContent"></div>
+  </main>
+</div>
+
+<!-- CLIENT MODAL -->
+<div class="modal-backdrop" id="clientModal">
+  <div class="modal">
+    <div class="modal-head"><h3 id="clientModalTitle">Nuevo <span class="accent">cliente</span></h3><button class="modal-close" data-close-modal="clientModal">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="clientId">
+      <div class="form-row">
+        <div class="form-field"><label>Nombre completo *</label><input type="text" id="clientName" placeholder="Ej: Juan Pérez"></div>
+        <div class="form-field"><label>Fecha de nacimiento</label><input type="date" id="clientBirthdate"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field"><label>Teléfono</label><input type="tel" id="clientPhone" placeholder="+54 11 5555-1234"></div>
+        <div class="form-field"><label>Email</label><input type="email" id="clientEmail" placeholder="cliente@mail.com"></div>
+      </div>
+      <div class="form-row full"><div class="form-field full"><label>Objetivo principal</label><input type="text" id="clientGoal" placeholder="Ej: Bajar 10 kg en 4 meses / Hipertrofia / Powerlifting"></div></div>
+      <div class="form-row">
+        <div class="form-field"><label>Altura (cm)</label><input type="number" id="clientHeight" placeholder="175" min="100" max="250"></div>
+        <div class="form-field"><label>Fecha de inicio</label><input type="date" id="clientStartDate"></div>
+      </div>
+      <div class="form-row full"><div class="form-field full"><label>Notas privadas</label><textarea id="clientNotes" placeholder="Lesiones, condiciones médicas, observaciones..."></textarea></div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" data-close-modal="clientModal">Cancelar</button>
+      <button class="btn btn-primary" id="saveClientBtn">Guardar cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEASUREMENT MODAL -->
+<div class="modal-backdrop" id="measurementModal">
+  <div class="modal">
+    <div class="modal-head"><h3 id="measurementModalTitle">Nueva <span class="accent">medición</span></h3><button class="modal-close" data-close-modal="measurementModal">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="measurementId"><input type="hidden" id="measurementClientId">
+      <div class="form-row full"><div class="form-field full"><label>Fecha de la medición *</label><input type="date" id="measurementDate"></div></div>
+      <div class="form-divider">
+        <div class="form-divider-title">Composición corporal</div>
+        <div class="form-row">
+          <div class="form-field"><label>Peso (kg)</label><input type="number" id="mWeight" placeholder="78.5" step="0.1"></div>
+          <div class="form-field"><label>% Grasa corporal</label><input type="number" id="mBodyFat" placeholder="18.5" step="0.1"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>% Masa muscular</label><input type="number" id="mMuscle" placeholder="42.0" step="0.1"></div>
+          <div class="form-field"><label>IMC (calculado)</label><input type="text" id="mIMC" placeholder="Se calcula solo" readonly></div>
+        </div>
+      </div>
+      <div class="form-divider">
+        <div class="form-divider-title">Circunferencias (cm)</div>
+        <div class="form-row">
+          <div class="form-field"><label>Pecho</label><input type="number" id="mChest" placeholder="105" step="0.1"></div>
+          <div class="form-field"><label>Cintura</label><input type="number" id="mWaist" placeholder="85" step="0.1"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>Cadera</label><input type="number" id="mHip" placeholder="98" step="0.1"></div>
+          <div class="form-field"><label>Cuello</label><input type="number" id="mNeck" placeholder="38" step="0.1"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>Brazo izquierdo</label><input type="number" id="mArmL" placeholder="35" step="0.1"></div>
+          <div class="form-field"><label>Brazo derecho</label><input type="number" id="mArmR" placeholder="35" step="0.1"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>Muslo izquierdo</label><input type="number" id="mThighL" placeholder="58" step="0.1"></div>
+          <div class="form-field"><label>Muslo derecho</label><input type="number" id="mThighR" placeholder="58" step="0.1"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>Pantorrilla izquierda</label><input type="number" id="mCalfL" placeholder="38" step="0.1"></div>
+          <div class="form-field"><label>Pantorrilla derecha</label><input type="number" id="mCalfR" placeholder="38" step="0.1"></div>
+        </div>
+      </div>
+      <div class="form-row full"><div class="form-field full"><label>Notas de la sesión</label><textarea id="mNotes" placeholder="Observaciones, cambios en rutina..."></textarea></div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" data-close-modal="measurementModal">Cancelar</button>
+      <button class="btn btn-primary" id="saveMeasurementBtn">Guardar medición</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-backdrop" id="confirmModal">
+  <div class="modal confirm-dialog">
+    <div class="modal-head"><h3 id="confirmTitle">Confirmar</h3></div>
+    <div class="modal-body">
+      <h4 id="confirmHeading">¿Estás seguro?</h4>
+      <p id="confirmText">Esta acción no se puede deshacer.</p>
+      <div class="confirm-actions">
+        <button class="btn btn-secondary" id="confirmCancel">Cancelar</button>
+        <button class="btn btn-danger" id="confirmAccept">Eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   GYM BROTHERS · PANEL DEL ENTRENADOR
+   Backend: GitHub API (Repository: RinconCity/GymBrothers)
+============================================================ */
+
+const GITHUB_OWNER = 'RinconCity';
+const GITHUB_REPO = 'GymBrothers';
+const API_BASE = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/`;
+
+const STORAGE_KEYS = { PASSWORD: 'gb_panel_password', SESSION: 'gb_panel_session' };
+const DEFAULT_PASSWORD = 'brothers2024';
+
+let gitToken = null;
+let clientsIndex = [];
+let currentClientId = null;
+let confirmCallback = null;
+
+/* ============ UTILS ============ */
+function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 9); }
+function todayISO() { return new Date().toISOString().split('T')[0]; }
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso + 'T00:00:00');
+  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+function calcAge(birthdate) { if (!birthdate) return null; const d = new Date(birthdate + 'T00:00:00'); return Math.floor((Date.now() - d.getTime()) / (365.25 * 24 * 60 * 60 * 1000)); }
+function calcIMC(weight, height) { if (!weight || !height) return null; const h = height / 100; return (weight / (h * h)).toFixed(1); }
+function getInitials(name) { if (!name) return '?'; const p = name.trim().split(' '); return p.length === 1 ? p[0].charAt(0).toUpperCase() : (p[0].charAt(0) + p[p.length - 1].charAt(0)).toUpperCase(); }
+function escapeHtml(str) { if (str == null) return ''; return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); }
+
+// Base64 con soporte para Unicode (tildes, ñ)
+function encodeBase64(str) { return btoa(unescape(encodeURIComponent(str))); }
+function decodeBase64(b64) { return decodeURIComponent(escape(atob(b64))); }
+
+/* ============ TOAST ============ */
+let toastTimer = null;
+function showToast(message, type = 'success', duration = 2800) {
+  const toast = document.getElementById('toast');
+  const spinner = type === 'syncing' ? '<div class="spinner"></div>' : '';
+  toast.innerHTML = spinner + '<span>' + message + '</span>';
+  toast.className = 'toast is-visible ' + (type === 'syncing' ? '' : type);
+  clearTimeout(toastTimer);
+  if (type !== 'syncing') {
+    toastTimer = setTimeout(() => toast.classList.remove('is-visible'), duration);
+  }
+}
+function hideToast() { document.getElementById('toast').classList.remove('is-visible'); }
+
+/* ============ MODALS ============ */
+function openModal(id) { document.getElementById(id).classList.add('is-open'); document.body.style.overflow = 'hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('is-open'); document.body.style.overflow = ''; }
+function closeAllModals() { document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('is-open')); document.body.style.overflow = ''; }
+
+function showConfirm(heading, text, callback, acceptLabel = 'Eliminar') {
+  document.getElementById('confirmHeading').textContent = heading;
+  document.getElementById('confirmText').textContent = text;
+  document.getElementById('confirmAccept').textContent = acceptLabel;
+  confirmCallback = callback;
+  openModal('confirmModal');
+}
+document.getElementById('confirmCancel').addEventListener('click', () => { confirmCallback = null; closeModal('confirmModal'); });
+document.getElementById('confirmAccept').addEventListener('click', () => { if (confirmCallback) confirmCallback(); confirmCallback = null; closeModal('confirmModal'); });
+
+/* ============ GITHUB API ============ */
+function setSyncing(isSyncing) {
+  document.getElementById('syncIndicator').classList.toggle('is-syncing', isSyncing);
+}
+
+async function apiGet(path) {
+  const url = `${API_BASE}${path}`;
+  const res = await fetch(url, { headers: { 'Authorization': `Bearer ${gitToken}`, 'Accept': 'application/vnd.github+json' } });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Error ${res.status}`);
+  return res.json();
+}
+
+async function apiPut(path, content, sha, message) {
+  const url = `${API_BASE}${path}`;
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Authorization': `Bearer ${gitToken}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, content: encodeBase64(JSON.stringify(content)), sha })
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || 'Error al guardar en GitHub');
+  }
+  return res.json();
+}
+
+async function apiDelete(path, sha, message) {
+  const url = `${API_BASE}${path}`;
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${gitToken}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, sha })
+  });
+  if (!res.ok) throw new Error('Error al eliminar en GitHub');
+  return res.json();
+}
+
+/* ============ DATA LAYER ============ */
+async function getIndex() {
+  try {
+    const file = await apiGet('clients/index.json');
+    if (!file) return [];
+    return JSON.parse(decodeBase64(file.content));
+  } catch (e) {
+    return []; // Si no existe el index, está vacío
+  }
+}
+
+async function saveIndex(newIndex) {
+  const existing = await apiGet('clients/index.json');
+  const sha = existing ? existing.sha : null;
+  await apiPut('clients/index.json', newIndex, sha, 'Update clients index');
+}
+
+async function getClient(id) {
+  const file = await apiGet(`clients/${id}.json`);
+  if (!file) return null;
+  return JSON.parse(decodeBase64(file.content));
+}
+
+async function saveClientData(client) {
+  const path = `clients/${client.id}.json`;
+  const existing = await apiGet(path);
+  const sha = existing ? existing.sha : null;
+  await apiPut(path, client, sha, `Update client: ${client.name}`);
+}
+
+async function deleteClientData(id) {
+  const path = `clients/${id}.json`;
+  const existing = await apiGet(path);
+  if (!existing) return;
+  await apiDelete(path, existing.sha, `Delete client: ${id}`);
+}
+
+/* ============ LOGIN ============ */
+function getPassword() { return localStorage.getItem(STORAGE_KEYS.PASSWORD) || DEFAULT_PASSWORD; }
+function setPassword(pw) { localStorage.setItem(STORAGE_KEYS.PASSWORD, pw); }
+
+function checkLogin() {
+  const token = sessionStorage.getItem('gb_session_token');
+  if (token) {
+    gitToken = token;
+    showApp();
+  } else {
+    showLogin();
+  }
+}
+function showLogin() {
+  document.getElementById('loginScreen').classList.remove('is-hidden');
+  document.getElementById('app').classList.remove('is-active');
+  document.getElementById('passwordInput').value = '';
+  document.getElementById('tokenInput').value = '';
+}
+function showApp() {
+  document.getElementById('loginScreen').classList.add('is-hidden');
+  document.getElementById('app').classList.add('is-active');
+  renderDashboard();
+}
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const inputPass = document.getElementById('passwordInput').value;
+  const inputToken = document.getElementById('tokenInput').value.trim();
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  
+  if (inputPass !== getPassword()) {
+    errEl.textContent = 'Contraseña del panel incorrecta.';
+    return;
+  }
+  if (!inputToken.startsWith('github_pat_')) {
+    errEl.textContent = 'El token de GitHub no parece válido.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> <span>Verificando...</span>';
+  
+  // Test token
+  gitToken = inputToken;
+  try {
+    const test = await apiGet('clients/index.json');
+    if (test || test === null) {
+      sessionStorage.setItem('gb_session_token', gitToken);
+      errEl.textContent = '';
+      showApp();
+    }
+  } catch (err) {
+    errEl.textContent = 'Token inválido o sin permisos sobre el repo.';
+    gitToken = null;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span>Entrar al panel →</span>';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('gb_session_token');
+  gitToken = null;
+  showLogin();
+});
+
+/* ============ DASHBOARD ============ */
+async function renderDashboard() {
+  const grid = document.getElementById('clientsGrid');
+  const search = document.getElementById('searchInput').value.toLowerCase().trim();
+  
+  setSyncing(true);
+  clientsIndex = await getIndex();
+  setSyncing(false);
+
+  // Sort by name
+  clientsIndex.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+  document.getElementById('statTotal').textContent = clientsIndex.length;
+  const now = new Date();
+  const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+  let weekMeasurements = 0;
+  clientsIndex.forEach(c => {
+    if (c.lastDate && new Date(c.lastDate) >= weekAgo) weekMeasurements++;
+  });
+  document.getElementById('statWeek').textContent = weekMeasurements;
+
+  let filtered = clientsIndex;
+  if (search) {
+    filtered = clientsIndex.filter(c => c.name && c.name.toLowerCase().includes(search));
+  }
+
+  if (filtered.length === 0) {
+    if (clientsIndex.length === 0) {
+      grid.innerHTML = `<div class="empty-state"><h3>Todavía no hay clientes</h3><p>Hacé clic en "Nuevo cliente" para cargar tu primer atleta. Los datos se guardarán automáticamente en tu repositorio de GitHub.</p><button class="btn btn-primary" onclick="document.getElementById('addClientBtn').click()">+ Cargar primer cliente</button></div>`;
+    } else {
+      grid.innerHTML = `<div class="empty-state"><h3>Sin resultados</h3><p>No se encontraron clientes con "<strong>${escapeHtml(search)}</strong>".</p></div>`;
+    }
+    return;
+  }
+
+  grid.innerHTML = filtered.map(c => {
+    const delta = c.firstWeight && c.lastWeight ? (c.lastWeight - c.firstWeight) : null;
+    let progressHtml = '<span class="progress-indicator new">SIN MEDICIONES</span>';
+    if (c.measurementsCount === 1) {
+      progressHtml = `<span class="progress-indicator new">1 MEDICIÓN</span>`;
+    } else if (delta != null) {
+      if (delta > 0) progressHtml = `<span class="progress-indicator up">▲ ${delta.toFixed(1)} kg</span>`;
+      else if (delta < 0) progressHtml = `<span class="progress-indicator down">▼ ${Math.abs(delta).toFixed(1)} kg</span>`;
+      else progressHtml = `<span class="progress-indicator flat">— ESTABLE</span>`;
+    }
+    const photoHtml = c.photo ? `<img src="${c.photo}" alt="${escapeHtml(c.name)}">` : `<div class="placeholder">${getInitials(c.name)}</div>`;
+    return `
+      <div class="client-card" data-id="${c.id}">
+        <div class="client-card-photo">${photoHtml}</div>
+        <div class="client-card-name">${escapeHtml(c.name || 'Sin nombre')}</div>
+        <div class="client-card-goal">${escapeHtml(c.goal || 'Sin objetivo definido')}</div>
+        <div class="client-card-meta">
+          <span>${c.measurementsCount || 0} mediciones</span>
+          ${progressHtml}
+        </div>
+      </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.client-card').forEach(card => {
+    card.addEventListener('click', () => openClient(card.dataset.id));
+  });
+}
+
+document.getElementById('searchInput').addEventListener('input', () => {
+  // Re-render local filter without fetching
+  const grid = document.getElementById('clientsGrid');
+  const search = document.getElementById('searchInput').value.toLowerCase().trim();
+  let filtered = clientsIndex;
+  if (search) filtered = clientsIndex.filter(c => c.name && c.name.toLowerCase().includes(search));
+  
+  // Simple local re-render
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><h3>Sin resultados</h3></div>`;
+    return;
+  }
+  
+  grid.innerHTML = filtered.map(c => {
+    const delta = c.firstWeight && c.lastWeight ? (c.lastWeight - c.firstWeight) : null;
+    let progressHtml = '<span class="progress-indicator new">SIN MEDICIONES</span>';
+    if (c.measurementsCount === 1) progressHtml = `<span class="progress-indicator new">1 MEDICIÓN</span>`;
+    else if (delta != null) {
+      if (delta > 0) progressHtml = `<span class="progress-indicator up">▲ ${delta.toFixed(1)} kg</span>`;
+      else if (delta < 0) progressHtml = `<span class="progress-indicator down">▼ ${Math.abs(delta).toFixed(1)} kg</span>`;
+      else progressHtml = `<span class="progress-indicator flat">— ESTABLE</span>`;
+    }
+    const photoHtml = c.photo ? `<img src="${c.photo}" alt="${escapeHtml(c.name)}">` : `<div class="placeholder">${getInitials(c.name)}</div>`;
+    return `<div class="client-card" data-id="${c.id}"><div class="client-card-photo">${photoHtml}</div><div class="client-card-name">${escapeHtml(c.name || 'Sin nombre')}</div><div class="client-card-goal">${escapeHtml(c.goal || 'Sin objetivo')}</div><div class="client-card-meta"><span>${c.measurementsCount || 0} mediciones</span>${progressHtml}</div></div>`;
+  }).join('');
+  
+  grid.querySelectorAll('.client-card').forEach(card => card.addEventListener('click', () => openClient(card.dataset.id)));
+});
+
+/* ============ ADD/EDIT CLIENT ============ */
+document.getElementById('addClientBtn').addEventListener('click', () => openClientForm());
+
+function openClientForm(clientId = null) {
+  const modal = document.getElementById('clientModal');
+  const title = document.getElementById('clientModalTitle');
+  document.getElementById('clientId').value = clientId || '';
+
+  // Fetch from index first, if editing full data is needed fetch the file
+  if (clientId) {
+    const c = clientsIndex.find(x => x.id === clientId);
+    if (!c) return;
+    title.innerHTML = 'Editar <span class="accent">cliente</span>';
+    document.getElementById('clientName').value = c.name || '';
+    document.getElementById('clientBirthdate').value = c.birthdate || '';
+    document.getElementById('clientPhone').value = c.phone || '';
+    document.getElementById('clientEmail').value = c.email || '';
+    document.getElementById('clientGoal').value = c.goal || '';
+    document.getElementById('clientHeight').value = c.height || '';
+    document.getElementById('clientStartDate').value = c.startDate || '';
+    document.getElementById('clientNotes').value = c.notes || '';
+  } else {
+    title.innerHTML = 'Nuevo <span class="accent">cliente</span>';
+    ['clientName','clientBirthdate','clientPhone','clientEmail','clientGoal','clientHeight','clientNotes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('clientStartDate').value = todayISO();
+  }
+  openModal('clientModal');
+  setTimeout(() => document.getElementById('clientName').focus(), 200);
+}
+
+document.getElementById('saveClientBtn').addEventListener('click', async () => {
+  const id = document.getElementById('clientId').value;
+  const name = document.getElementById('clientName').value.trim();
+  if (!name) {
+    showToast('El nombre es obligatorio', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('saveClientBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Guardando...';
+  setSyncing(true);
+
+  try {
+    let clientData;
+    if (id) {
+      // Edit existing
+      clientData = await getClient(id);
+      clientData.name = name;
+      clientData.birthdate = document.getElementById('clientBirthdate').value;
+      clientData.phone = document.getElementById('clientPhone').value.trim();
+      clientData.email = document.getElementById('clientEmail').value.trim();
+      clientData.goal = document.getElementById('clientGoal').value.trim();
+      clientData.height = document.getElementById('clientHeight').value ? parseFloat(document.getElementById('clientHeight').value) : null;
+      clientData.startDate = document.getElementById('clientStartDate').value || todayISO();
+      clientData.notes = document.getElementById('clientNotes').value.trim();
+    } else {
+      // New
+      clientData = {
+        id: uid(),
+        name: name,
+        birthdate: document.getElementById('clientBirthdate').value,
+        phone: document.getElementById('clientPhone').value.trim(),
+        email: document.getElementById('clientEmail').value.trim(),
+        goal: document.getElementById('clientGoal').value.trim(),
+        height: document.getElementById('clientHeight').value ? parseFloat(document.getElementById('clientHeight').value) : null,
+        startDate: document.getElementById('clientStartDate').value || todayISO(),
+        notes: document.getElementById('clientNotes').value.trim(),
+        photo: '',
+        measurements: [],
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    await saveClientData(clientData);
+
+    // Update Index
+    const idx = clientsIndex.findIndex(c => c.id === clientData.id);
+    const indexEntry = {
+      id: clientData.id,
+      name: clientData.name,
+      goal: clientData.goal,
+      photo: clientData.photo,
+      height: clientData.height,
+      birthdate: clientData.birthdate,
+      phone: clientData.phone,
+      email: clientData.email,
+      startDate: clientData.startDate,
+      notes: clientData.notes,
+      measurementsCount: clientData.measurements ? clientData.measurements.length : 0,
+      lastDate: clientData.measurements && clientData.measurements.length > 0 ? [...clientData.measurements].sort((a,b) => (b.date||'').localeCompare(a.date||''))[0].date : null,
+      firstWeight: clientData.measurements && clientData.measurements.length > 0 ? [...clientData.measurements].sort((a,b) => (a.date||'').localeCompare(b.date||''))[0].weight : null,
+      lastWeight: clientData.measurements && clientData.measurements.length > 0 ? [...clientData.measurements].sort((a,b) => (b.date||'').localeCompare(a.date||''))[0].weight : null
+    };
+    if (idx > -1) clientsIndex[idx] = indexEntry;
+    else clientsIndex.push(indexEntry);
+    
+    await saveIndex(clientsIndex);
+
+    showToast(id ? 'Cliente actualizado' : 'Cliente agregado');
+    closeModal('clientModal');
+
+    if (id === currentClientId) {
+      await renderClientDetail(id);
+    } else {
+      await renderDashboard();
+    }
+  } catch (err) {
+    showToast('Error al guardar en GitHub', 'error');
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Guardar cliente';
+    setSyncing(false);
+  }
+});
+
+/* ============ CLIENT DETAIL ============ */
+async function openClient(clientId) {
+  currentClientId = clientId;
+  document.getElementById('dashboardView').style.display = 'none';
+  document.getElementById('clientView').style.display = 'block';
+  document.getElementById('topbarBrand').classList.add('has-back');
+  await renderClientDetail(clientId);
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+async function backToDashboard() {
+  currentClientId = null;
+  document.getElementById('clientView').style.display = 'none';
+  document.getElementById('dashboardView').style.display = 'block';
+  document.getElementById('topbarBrand').classList.remove('has-back');
+  await renderDashboard();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+document.getElementById('clientBack').addEventListener('click', backToDashboard);
+document.getElementById('topbarBrand').addEventListener('click', () => { if (currentClientId) backToDashboard(); });
+
+async function renderClientDetail(clientId) {
+  setSyncing(true);
+  const c = await getClient(clientId);
+  setSyncing(false);
+  
+  if (!c) {
+    showToast('Cliente no encontrado', 'error');
+    backToDashboard();
+    return;
+  }
+
+  // Sync index with full data for edit form
+  const idx = clientsIndex.findIndex(x => x.id === c.id);
+  if (idx > -1) {
+    clientsIndex[idx].notes = c.notes;
+    clientsIndex[idx].photo = c.photo;
+    clientsIndex[idx].phone = c.phone;
+    clientsIndex[idx].email = c.email;
+  }
+
+  const container = document.getElementById('clientContent');
+  const age = calcAge(c.birthdate);
+  const photoHtml = c.photo ? `<img src="${c.photo}" alt="${escapeHtml(c.name)}">` : `<div class="placeholder">${getInitials(c.name)}</div>`;
+
+  const measurements = (c.measurements || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const latest = measurements[0] || null;
+  const first = measurements[measurements.length - 1] || null;
+
+  function deltaCard(label, latestVal, firstVal, unit, isInverted = false) {
+    if (latestVal == null) return `<div class="progress-card"><div class="pc-label">${label}</div><div class="pc-current">—</div><div class="pc-delta none">SIN DATOS</div></div>`;
+    let deltaHtml = '<div class="pc-delta none">PRIMERA MEDICIÓN</div>';
+    if (firstVal != null && firstVal !== latestVal) {
+      const delta = parseFloat(latestVal) - parseFloat(firstVal);
+      if (!isNaN(delta)) {
+        let cls = ''; let arrow = '';
+        if (delta > 0) { arrow = '▲'; cls = isInverted ? 'bad-up' : 'up'; }
+        else if (delta < 0) { arrow = '▼'; cls = isInverted ? 'bad-down' : 'down'; }
+        else { cls = 'flat'; arrow = '—'; }
+        deltaHtml = `<div class="pc-delta ${cls}">${arrow} ${Math.abs(delta).toFixed(1)} ${unit}</div>`;
+      }
+    }
+    return `<div class="progress-card"><div class="pc-label">${label}</div><div class="pc-current">${parseFloat(latestVal).toFixed(1)}<span class="unit">${unit}</span></div>${deltaHtml}</div>`;
+  }
+
+  const weightCard = deltaCard('Peso', latest?.weight, first?.weight, 'kg');
+  const fatCard = deltaCard('% Grasa', latest?.bodyFat, first?.bodyFat, '%', true);
+  const muscleCard = deltaCard('% Músculo', latest?.muscle, first?.muscle, '%');
+  const waistCard = deltaCard('Cintura', latest?.waist, first?.waist, 'cm', true);
+
+  let tableHtml = '';
+  if (measurements.length === 0) {
+    tableHtml = '<div class="measurements-empty">Todavía no hay mediciones registradas.<br>Hacé clic en "Nueva medición" para cargar la primera.</div>';
+  } else {
+    const rows = measurements.map(m => {
+      const imc = calcIMC(m.weight, c.height);
+      return `<tr>
+        <td class="date-cell">${formatDate(m.date)}</td>
+        <td>${m.weight ? `<span class="val-num">${parseFloat(m.weight).toFixed(1)}</span><span class="val-unit">kg</span>` : '—'}</td>
+        <td>${m.bodyFat != null ? `<span class="val-num">${parseFloat(m.bodyFat).toFixed(1)}</span><span class="val-unit">%</span>` : '—'}</td>
+        <td>${m.muscle != null ? `<span class="val-num">${parseFloat(m.muscle).toFixed(1)}</span><span class="val-unit">%</span>` : '—'}</td>
+        <td>${imc || '—'}</td>
+        <td>${m.chest != null ? `<span class="val-num">${parseFloat(m.chest).toFixed(1)}</span><span class="val-unit">cm</span>` : '—'}</td>
+        <td>${m.waist != null ? `<span class="val-num">${parseFloat(m.waist).toFixed(1)}</span><span class="val-unit">cm</span>` : '—'}</td>
+        <td>${m.hip != null ? `<span class="val-num">${parseFloat(m.hip).toFixed(1)}</span><span class="val-unit">cm</span>` : '—'}</td>
+        <td>${m.armL != null ? `<span class="val-num">${parseFloat(m.armL).toFixed(1)}</span><span class="val-unit">cm</span>` : '—'}</td>
+        <td>${m.armR != null ? `<span class="val-num">${parseFloat(m.armR).toFixed(1)}</span><span class="val-unit">cm</span>` : '—'}</td>
+        <td>${m.thighL != null ? `<span class="val-num">${parseFloat(m.thighL).toFixed(1)}</span><span class="val-unit">cm</span>` : '—'}</td>
+        <td>${m.thighR != null ? `<span class="val-num">${parseFloat(m.thighR).toFixed(1)}</span><span class="val-unit">cm</span>` : '—'}</td>
+        <td><button class="delete-measurement" data-mid="${m.id}">Eliminar</button></td>
+      </tr>`;
+    }).join('');
+    tableHtml = `<div class="measurements-wrap"><table class="measurements-table"><thead><tr><th>Fecha</th><th>Peso</th><th>% Grasa</th><th>% Músculo</th><th>IMC</th><th>Pecho</th><th>Cintura</th><th>Cadera</th><th>Brazo I</th><th>Brazo D</th><th>Muslo I</th><th>Muslo D</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  container.innerHTML = `
+    <div class="client-header">
+      <div class="client-photo-wrap">
+        ${photoHtml}
+        <label class="client-photo-edit">Cambiar foto<input type="file" id="photoInput" accept="image/*"></label>
+      </div>
+      <div class="client-info-block">
+        <div class="label">Cliente</div>
+        <div class="name">${escapeHtml(c.name || 'Sin nombre')}</div>
+        ${c.goal ? `<div class="goal-line">${escapeHtml(c.goal)}</div>` : ''}
+        <div class="client-info-grid">
+          <div class="info-cell"><div class="lbl">Edad</div><div class="val">${age !== null ? age + ' años' : '—'}</div></div>
+          <div class="info-cell"><div class="lbl">Altura</div><div class="val">${c.height ? c.height + ' cm' : '—'}</div></div>
+          <div class="info-cell"><div class="lbl">Inicio</div><div class="val">${formatDate(c.startDate)}</div></div>
+          <div class="info-cell"><div class="lbl">Mediciones</div><div class="val">${measurements.length}</div></div>
+          <div class="info-cell"><div class="lbl">Teléfono</div><div class="val">${c.phone ? escapeHtml(c.phone) : '—'}</div></div>
+          <div class="info-cell"><div class="lbl">Email</div><div class="val">${c.email ? escapeHtml(c.email) : '—'}</div></div>
+          <div class="info-cell"><div class="lbl">Última medición</div><div class="val">${latest ? formatDate(latest.date) : '—'}</div></div>
+          <div class="info-cell"><div class="lbl">IMC actual</div><div class="val">${latest && c.height ? calcIMC(latest.weight, c.height) : '—'}</div></div>
+        </div>
+      </div>
+      <div class="client-actions">
+        <button class="action-btn primary" id="addMeasurementBtn">+ Nueva medición</button>
+        <button class="action-btn" id="editClientBtn">Editar cliente</button>
+        <button class="action-btn danger" id="deleteClientBtn">Eliminar cliente</button>
+      </div>
+    </div>
+    <section class="progress-section">
+      <div class="section-head"><div><div class="label">Resumen de avance</div><h2>Última vs <span class="accent">primera</span> medición</h2></div></div>
+      <div class="progress-cards">${weightCard}${fatCard}${muscleCard}${waistCard}</div>
+    </section>
+    <section class="measurements-section">
+      <div class="section-head"><div><div class="label">Historial completo</div><h2>Mediciones <span class="accent">registradas</span></h2></div></div>
+      ${tableHtml}
+    </section>
+    <section class="notes-section">
+      <div class="label">Notas privadas</div>
+      <div class="notes-content ${!c.notes ? 'notes-empty' : ''}">${c.notes ? escapeHtml(c.notes) : 'Sin notas registradas. Hacé clic en "Editar cliente" para agregar.'}</div>
+    </section>
+  `;
+
+  document.getElementById('addMeasurementBtn').addEventListener('click', () => openMeasurementForm(c.id));
+  document.getElementById('editClientBtn').addEventListener('click', () => openClientForm(c.id));
+  document.getElementById('deleteClientBtn').addEventListener('click', () => {
+    showConfirm('Eliminar cliente', `Se eliminará a "${c.name}" y todas sus ${measurements.length} mediciones de GitHub.`, async () => {
+      setSyncing(true);
+      try {
+        await deleteClientData(c.id);
+        clientsIndex = clientsIndex.filter(x => x.id !== c.id);
+        await saveIndex(clientsIndex);
+        showToast('Cliente eliminado');
+        backToDashboard();
+      } catch (e) {
+        showToast('Error al eliminar', 'error');
+      } finally {
+        setSyncing(false);
+      }
+    });
+  });
+
+  document.getElementById('photoInput').addEventListener('change', handlePhotoUpload);
+
+  document.querySelectorAll('.delete-measurement').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const mid = btn.dataset.mid;
+      const m = c.measurements.find(x => x.id === mid);
+      showConfirm('Eliminar medición', `Se eliminará la medición del ${formatDate(m.date)}.`, async () => {
+        setSyncing(true);
+        try {
+          c.measurements = c.measurements.filter(x => x.id !== mid);
+          await saveClientData(c);
+          
+          // Update index
+          const idx = clientsIndex.findIndex(x => x.id === c.id);
+          if (idx > -1) {
+            clientsIndex[idx].measurementsCount = c.measurements.length;
+            const sorted = [...c.measurements].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+            const firstS = [...c.measurements].sort((a,b) => (a.date||'').localeCompare(b.date||''));
+            clientsIndex[idx].lastDate = sorted[0]?.date || null;
+            clientsIndex[idx].firstWeight = firstS[0]?.weight || null;
+            clientsIndex[idx].lastWeight = sorted[0]?.weight || null;
+            await saveIndex(clientsIndex);
+          }
+          showToast('Medición eliminada');
+          renderClientDetail(c.id);
+        } catch (err) {
+          showToast('Error al eliminar', 'error');
+        } finally {
+          setSyncing(false);
+        }
+      });
+    });
+  });
+}
+
+/* ============ PHOTO UPLOAD ============ */
+async function handlePhotoUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('El archivo debe ser una imagen', 'error'); return; }
+  if (file.size > 2 * 1024 * 1024) { showToast('La imagen no debe superar 2 MB', 'error'); return; }
+
+  const reader = new FileReader();
+  reader.onload = async (event) => {
+    const img = new Image();
+    img.onload = async () => {
+      const canvas = document.createElement('canvas');
+      const maxDim = 600;
+      let { width, height } = img;
+      if (width > height && width > maxDim) { height = (height * maxDim) / width; width = maxDim; } 
+      else if (height > maxDim) { width = (width * maxDim) / height; height = maxDim; }
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+      setSyncing(true);
+      showToast('Subiendo foto a GitHub...', 'syncing');
+      try {
+        const c = await getClient(currentClientId);
+        c.photo = dataUrl;
+        await saveClientData(c);
+        
+        // Update index photo
+        const idx = clientsIndex.findIndex(x => x.id === c.id);
+        if (idx > -1) {
+          clientsIndex[idx].photo = dataUrl;
+          await saveIndex(clientsIndex);
+        }
+        
+        showToast('Foto actualizada');
+        renderClientDetail(currentClientId);
+      } catch (err) {
+        showToast('Error al subir foto', 'error');
+      } finally {
+        setSyncing(false);
+      }
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ============ MEASUREMENT FORM ============ */
+function openMeasurementForm(clientId, measurementId = null) {
+  const c = clientsIndex.find(x => x.id === clientId);
+  if (!c) return;
+
+  document.getElementById('measurementClientId').value = clientId;
+  document.getElementById('measurementId').value = measurementId || '';
+  const title = document.getElementById('measurementModalTitle');
+
+  ['measurementDate','mWeight','mBodyFat','mMuscle','mChest','mWaist','mHip','mNeck','mArmL','mArmR','mThighL','mThighR','mCalfL','mCalfR','mNotes']
+    .forEach(id => document.getElementById(id).value = '');
+
+  // Need full measurements array, but index doesn't have it. 
+  // For pre-fill, we fetch the client data. 
+  // To avoid blocking UI, we do it async and fill as we go.
+  (async () => {
+    const fullClient = await getClient(clientId);
+    if (measurementId) {
+      const m = (fullClient.measurements || []).find(x => x.id === measurementId);
+      if (!m) return;
+      title.innerHTML = 'Editar <span class="accent">medición</span>';
+      document.getElementById('measurementDate').value = m.date || todayISO();
+      document.getElementById('mWeight').value = m.weight || '';
+      document.getElementById('mBodyFat').value = m.bodyFat || '';
+      document.getElementById('mMuscle').value = m.muscle || '';
+      document.getElementById('mChest').value = m.chest || '';
+      document.getElementById('mWaist').value = m.waist || '';
+      document.getElementById('mHip').value = m.hip || '';
+      document.getElementById('mNeck').value = m.neck || '';
+      document.getElementById('mArmL').value = m.armL || '';
+      document.getElementById('mArmR').value = m.armR || '';
+      document.getElementById('mThighL').value = m.thighL || '';
+      document.getElementById('mThighR').value = m.thighR || '';
+      document.getElementById('mCalfL').value = m.calfL || '';
+      document.getElementById('mCalfR').value = m.calfR || '';
+      document.getElementById('mNotes').value = m.notes || '';
+    } else {
+      title.innerHTML = 'Nueva <span class="accent">medición</span>';
+      document.getElementById('measurementDate').value = todayISO();
+      const sorted = (fullClient.measurements || []).slice().sort((a,b) => (b.date||'').localeCompare(a.date||''));
+      const last = sorted[0];
+      if (last) {
+        document.getElementById('mWeight').value = last.weight || '';
+        document.getElementById('mBodyFat').value = last.bodyFat || '';
+        document.getElementById('mMuscle').value = last.muscle || '';
+        document.getElementById('mChest').value = last.chest || '';
+        document.getElementById('mWaist').value = last.waist || '';
+        document.getElementById('mHip').value = last.hip || '';
+        document.getElementById('mNeck').value = last.neck || '';
+        document.getElementById('mArmL').value = last.armL || '';
+        document.getElementById('mArmR').value = last.armR || '';
+        document.getElementById('mThighL').value = last.thighL || '';
+        document.getElementById('mThighR').value = last.thighR || '';
+        document.getElementById('mCalfL').value = last.calfL || '';
+        document.getElementById('mCalfR').value = last.calfR || '';
+      }
+    }
+    updateIMCPreview();
+  })();
+
+  openModal('measurementModal');
+}
+
+function updateIMCPreview() {
+  const weight = parseFloat(document.getElementById('mWeight').value);
+  const clientId = document.getElementById('measurementClientId').value;
+  const c = clientsIndex.find(x => x.id === clientId);
+  const height = c ? c.height : null;
+  const imc = calcIMC(weight, height);
+  document.getElementById('mIMC').value = imc || '';
+}
+document.getElementById('mWeight').addEventListener('input', updateIMCPreview);
+
+document.getElementById('saveMeasurementBtn').addEventListener('click', async () => {
+  const clientId = document.getElementById('measurementClientId').value;
+  const measurementId = document.getElementById('measurementId').value;
+  const date = document.getElementById('measurementDate').value;
+
+  if (!date) { showToast('La fecha es obligatoria', 'error'); return; }
+
+  const btn = document.getElementById('saveMeasurementBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Guardando...';
+  setSyncing(true);
+
+  try {
+    const c = await getClient(clientId);
+    if (!c.measurements) c.measurements = [];
+
+    const data = {
+      date,
+      weight: document.getElementById('mWeight').value ? parseFloat(document.getElementById('mWeight').value) : null,
+      bodyFat: document.getElementById('mBodyFat').value ? parseFloat(document.getElementById('mBodyFat').value) : null,
+      muscle: document.getElementById('mMuscle').value ? parseFloat(document.getElementById('mMuscle').value) : null,
+      chest: document.getElementById('mChest').value ? parseFloat(document.getElementById('mChest').value) : null,
+      waist: document.getElementById('mWaist').value ? parseFloat(document.getElementById('mWaist').value) : null,
+      hip: document.getElementById('mHip').value ? parseFloat(document.getElementById('mHip').value) : null,
+      neck: document.getElementById('mNeck').value ? parseFloat(document.getElementById('mNeck').value) : null,
+      armL: document.getElementById('mArmL').value ? parseFloat(document.getElementById('mArmL').value) : null,
+      armR: document.getElementById('mArmR').value ? parseFloat(document.getElementById('mArmR').value) : null,
+      thighL: document.getElementById('mThighL').value ? parseFloat(document.getElementById('mThighL').value) : null,
+      thighR: document.getElementById('mThighR').value ? parseFloat(document.getElementById('mThighR').value) : null,
+      calfL: document.getElementById('mCalfL').value ? parseFloat(document.getElementById('mCalfL').value) : null,
+      calfR: document.getElementById('mCalfR').value ? parseFloat(document.getElementById('mCalfR').value) : null,
+      notes: document.getElementById('mNotes').value.trim()
+    };
+
+    if (measurementId) {
+      const mIdx = c.measurements.findIndex(m => m.id === measurementId);
+      if (mIdx > -1) c.measurements[mIdx] = { ...c.measurements[mIdx], ...data };
+      showToast('Medición actualizada');
+    } else {
+      c.measurements.push({ id: uid(), ...data });
+      showToast('Medición registrada');
+    }
+
+    await saveClientData(c);
+
+    // Update Index Summary
+    const sorted = [...c.measurements].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    const firstS = [...c.measurements].sort((a,b) => (a.date||'').localeCompare(b.date||''));
+    
+    const idx = clientsIndex.findIndex(x => x.id === c.id);
+    if (idx > -1) {
+      clientsIndex[idx].measurementsCount = c.measurements.length;
+      clientsIndex[idx].lastDate = sorted[0]?.date || null;
+      clientsIndex[idx].firstWeight = firstS[0]?.weight || null;
+      clientsIndex[idx].lastWeight = sorted[0]?.weight || null;
+      await saveIndex(clientsIndex);
+    }
+
+    closeModal('measurementModal');
+    renderClientDetail(clientId);
+  } catch (err) {
+    showToast('Error al guardar en GitHub', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Guardar medición';
+    setSyncing(false);
+  }
+});
+
+/* ============ MODAL CLOSE HANDLERS ============ */
+document.querySelectorAll('[data-close-modal]').forEach(btn => btn.addEventListener('click', () => closeModal(btn.dataset.closeModal)));
+document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(backdrop.id); }));
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllModals(); });
+
+/* ============ INIT ============ */
+checkLogin();
+</script>
+</body>
+</html>
