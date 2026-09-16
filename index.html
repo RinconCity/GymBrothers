@@ -65,6 +65,8 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 .add-client-btn:hover { background: var(--color-accent); } .add-client-btn::before { content: '+'; font-size: 1.1rem; }
 .pay-btn { padding: 0.85rem 1.5rem; background: #fff; color: var(--color-danger); border: 1px solid var(--color-danger); font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 500; display: inline-flex; align-items: center; gap: 0.6rem; }
 .pay-btn:hover { background: var(--color-danger); color: #fff; }
+.broadcast-btn { padding: 0.85rem 1.5rem; background: var(--color-wa); color: #fff; border: 1px solid var(--color-wa); font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 500; display: inline-flex; align-items: center; gap: 0.6rem; }
+.broadcast-btn:hover { background: #128C7E; border-color: #128C7E; }
 
 .clients-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; }
 .client-card { background: #fff; border: 1px solid var(--color-border); padding: 1.5rem; cursor: pointer; display: flex; flex-direction: column; transition: all 0.3s; position: relative; }
@@ -117,7 +119,6 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 .pc-delta.flat { color: var(--color-text-secondary); } .pc-delta.none { color: var(--color-accent); }
 
 .chart-section { margin-bottom: 3rem; background: #fff; border: 1px solid var(--color-border); padding: 2rem; }
-.chart-container { position: relative; width: 100%; height: 200px; display: flex; }
 .chart-empty { width: 100%; text-align: center; color: var(--color-text-secondary); font-size: 0.9rem; padding: 3rem 0; font-style: italic; }
 .chart-legend { display: flex; gap: 1.5rem; margin-top: 1rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; text-transform: uppercase; color: var(--color-text-secondary); }
 .chart-legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 0.4rem; }
@@ -174,6 +175,8 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 .btn-primary { background: var(--color-accent); color: #fff; border: 1px solid var(--color-accent); } .btn-primary:hover { background: var(--color-bg-secondary); border-color: var(--color-bg-secondary); } .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-secondary { background: transparent; color: var(--color-text-primary); border: 1px solid var(--color-border-strong); } .btn-secondary:hover { background: var(--color-bg-secondary); color: #fff; border-color: var(--color-bg-secondary); }
 .btn-danger { background: transparent; color: var(--color-danger); border: 1px solid var(--color-danger); } .btn-danger:hover { background: var(--color-danger); color: #fff; }
+.btn-wa { background: var(--color-wa); color: #fff; border: none; padding: 0.5rem 1rem; font-size: 0.7rem; text-decoration: none; display:inline-flex; align-items:center; gap:0.5rem; }
+.btn-wa.sent { background: var(--color-text-secondary); cursor: default; }
 
 .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--color-bg-secondary); color: #fff; padding: 1rem 1.5rem; border-left: 3px solid var(--color-accent); font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; text-transform: uppercase; z-index: 500; opacity: 0; transition: all 0.3s; pointer-events: none; display: flex; align-items: center; gap: 0.75rem; }
 .toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); } .toast.error { border-left-color: var(--color-danger); } .toast.success { border-left-color: var(--color-success); }
@@ -239,6 +242,7 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
     </div>
     <div class="dashboard-toolbar">
       <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nombre o ID...">
+      <button class="broadcast-btn" id="broadcastBtn">Aviso Masivo</button>
       <button class="pay-btn" id="payBtn">Cobros de la semana</button>
       <button class="add-client-btn" id="addClientBtn">Nuevo cliente</button>
     </div>
@@ -372,6 +376,21 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
   </div>
 </div>
 
+<!-- BROADCAST MODAL -->
+<div class="modal-backdrop" id="broadcastModal">
+  <div class="modal">
+    <div class="modal-head"><h3>Aviso <span class="accent">Masivo</span></h3><button class="modal-close" data-close-modal="broadcastModal">×</button></div>
+    <div class="modal-body">
+      <div class="form-field full">
+        <label>Mensaje a enviar</label>
+        <textarea id="broadcastMsg" placeholder="Ej: Mañana el gym abre a las 10am por mantenimiento..." style="min-height: 120px;"></textarea>
+      </div>
+      <div id="broadcastList" style="margin-top: 1.5rem;"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-secondary" data-close-modal="broadcastModal">Cerrar</button></div>
+  </div>
+</div>
+
 <!-- CONFIRM MODAL -->
 <div class="modal-backdrop" id="confirmModal">
   <div class="modal" style="max-width:420px;">
@@ -494,6 +513,47 @@ function renderGrid() {
   grid.querySelectorAll('.client-card').forEach(card => card.addEventListener('click', () => openClient(card.dataset.id)));
 }
 document.getElementById('searchInput').addEventListener('input', renderGrid);
+
+/* ============ BROADCAST LOGIC ============ */
+document.getElementById('broadcastBtn').addEventListener('click', () => {
+  document.getElementById('broadcastMsg').value = '';
+  renderBroadcastList('');
+  openModal('broadcastModal');
+});
+
+document.getElementById('broadcastMsg').addEventListener('input', (e) => {
+  renderBroadcastList(e.target.value);
+});
+
+function renderBroadcastList(msg) {
+  const list = document.getElementById('broadcastList');
+  const recipients = clientsIndex.filter(c => c.phone);
+  const finalMsg = msg.trim() || 'Hola!'; // Default fallback
+  
+  if (recipients.length === 0) {
+    list.innerHTML = '<p style="text-align:center; color:var(--color-text-secondary);">No hay clientes con teléfono cargado.</p>';
+    return;
+  }
+  
+  list.innerHTML = recipients.map(c => `
+    <div class="pay-list-item" id="bc-${c.id}">
+      <div class="info"><h4>${escHtml(c.name)}</h4><p>${c.phone}</p></div>
+      <a href="https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(finalMsg)}" target="_blank" class="btn btn-wa" onclick="markBroadcastSent('${c.id}')">Enviar</a>
+    </div>
+  `).join('');
+}
+
+function markBroadcastSent(id) {
+  const item = document.getElementById(`bc-${id}`);
+  if (item) {
+    const btn = item.querySelector('.btn-wa');
+    if (btn) {
+      btn.textContent = 'Enviado ✓';
+      btn.classList.add('sent');
+      btn.onclick = (e) => e.preventDefault();
+    }
+  }
+}
 
 /* ============ PAYMENTS ============ */
 document.getElementById('payBtn').addEventListener('click', () => {
@@ -751,6 +811,7 @@ async function initPortal(trainerId, shortId) {
   document.getElementById('userBadge').style.display = 'none';
   document.getElementById('logoutBtn').textContent = 'Salir';
   document.getElementById('payBtn').style.display = 'none';
+  document.getElementById('broadcastBtn').style.display = 'none';
   document.getElementById('addClientBtn').style.display = 'none';
   document.getElementById('searchInput').style.display = 'none';
   
