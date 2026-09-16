@@ -58,15 +58,17 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 .dash-stat .num { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 2rem; line-height: 1; }
 .dash-stat .lbl { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--color-text-secondary); margin-top: 0.4rem; }
 
-.dashboard-toolbar { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+.dashboard-toolbar { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center; }
 .search-input { flex: 1; min-width: 200px; padding: 0.85rem 1.2rem; background: #fff; border: 1px solid var(--color-border); font-size: 0.9rem; outline: none; }
 .search-input:focus { border-color: var(--color-accent); }
+.filter-select { padding: 0.85rem 1.2rem; background: #fff; border: 1px solid var(--color-border); font-size: 0.9rem; outline: none; max-width: 250px; }
 .add-client-btn { padding: 0.85rem 1.5rem; background: var(--color-bg-secondary); color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 500; display: inline-flex; align-items: center; gap: 0.6rem; }
 .add-client-btn:hover { background: var(--color-accent); } .add-client-btn::before { content: '+'; font-size: 1.1rem; }
 .pay-btn { padding: 0.85rem 1.5rem; background: #fff; color: var(--color-danger); border: 1px solid var(--color-danger); font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 500; display: inline-flex; align-items: center; gap: 0.6rem; }
 .pay-btn:hover { background: var(--color-danger); color: #fff; }
 .broadcast-btn { padding: 0.85rem 1.5rem; background: var(--color-wa); color: #fff; border: 1px solid var(--color-wa); font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 500; display: inline-flex; align-items: center; gap: 0.6rem; }
 .broadcast-btn:hover { background: #128C7E; border-color: #128C7E; }
+.trainers-btn { padding: 0.85rem 1.5rem; background: #111; color: var(--color-accent); border: 1px solid var(--color-accent); font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 500; display: inline-flex; align-items: center; gap: 0.6rem; }
 
 .clients-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; }
 .client-card { background: #fff; border: 1px solid var(--color-border); padding: 1.5rem; cursor: pointer; display: flex; flex-direction: column; transition: all 0.3s; position: relative; }
@@ -75,7 +77,8 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 .client-card-photo img { width: 100%; height: 100%; object-fit: cover; }
 .client-card-photo .placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--color-bg-secondary); color: rgba(255,255,255,0.3); font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 3rem; }
 .client-card-id { position: absolute; top: 0.5rem; left: 0.5rem; background: rgba(17,17,17,0.8); color: var(--color-accent); font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; padding: 0.2rem 0.4rem; }
-.client-card-name { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.15rem; text-transform: uppercase; margin-bottom: 0.3rem; }
+.client-card-name { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.15rem; text-transform: uppercase; margin-bottom: 0.1rem; }
+.client-card-trainer { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--color-accent); text-transform: uppercase; margin-bottom: 0.5rem; }
 .client-card-goal { font-size: 0.82rem; color: var(--color-text-secondary); margin-bottom: 1rem; min-height: 2.4em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .client-card-meta { display: flex; justify-content: space-between; padding-top: 0.85rem; border-top: 1px solid var(--color-border); font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-transform: uppercase; color: var(--color-text-secondary); }
 .payment-alert { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--color-danger); color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; padding: 0.3rem 0.5rem; text-transform: uppercase; }
@@ -245,6 +248,8 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
     </div>
     <div class="dashboard-toolbar">
       <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nombre o ID...">
+      <select class="filter-select" id="trainerFilter" style="display:none;"></select>
+      <button class="trainers-btn" id="trainersBtn" style="display:none;">Entrenadores</button>
       <button class="broadcast-btn" id="broadcastBtn">Aviso Masivo</button>
       <button class="pay-btn" id="payBtn">Cobros de la semana</button>
       <button class="add-client-btn" id="addClientBtn">Nuevo cliente</button>
@@ -282,6 +287,12 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
     <div class="modal-head"><h3 id="clientModalTitle">Nuevo <span class="accent">cliente</span></h3><button class="modal-close" data-close-modal="clientModal">×</button></div>
     <div class="modal-body">
       <input type="hidden" id="clientId">
+      <div id="trainerAssignRow" class="form-row full" style="display:none; margin-bottom:1rem;">
+        <div class="form-field full">
+          <label>Asignar a Entrenador</label>
+          <select id="clientTrainerId"></select>
+        </div>
+      </div>
       <div class="form-row">
         <div class="form-field"><label>Nombre completo *</label><input type="text" id="clientName"></div>
         <div class="form-field"><label>Fecha de nacimiento</label><input type="date" id="clientBirthdate"></div>
@@ -382,6 +393,15 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
   </div>
 </div>
 
+<!-- TRAINERS MODAL -->
+<div class="modal-backdrop" id="trainersModal">
+  <div class="modal">
+    <div class="modal-head"><h3>Gestión de <span class="accent">Entrenadores</span></h3><button class="modal-close" data-close-modal="trainersModal">×</button></div>
+    <div class="modal-body" id="trainersModalBody"></div>
+    <div class="modal-foot"><button class="btn btn-secondary" data-close-modal="trainersModal">Cerrar</button></div>
+  </div>
+</div>
+
 <!-- BROADCAST MODAL -->
 <div class="modal-backdrop" id="broadcastModal">
   <div class="modal">
@@ -436,10 +456,12 @@ let currentUserId = null;
 let currentUserName = '';
 let clientsIndex = [];
 let currentClientId = null;
+let currentClientTrainerId = null; // To track which trainer's file we need to edit
 let confirmCallback = null;
 let trainerProfile = { name: '', photo: '' };
 let currentMPhoto = '';
 let routineData = [];
+let isAdmin = false;
 
 /* ============ UTILS ============ */
 function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 9); }
@@ -471,18 +493,59 @@ async function apiDel(p, s, m) { const r=await fetch(`${API_BASE}${p}`, {method:
 
 /* ============ DATA & CACHE ============ */
 async function getIndex() {
-  const cacheKey = `gb_idx_${currentUserId}`;
-  const cached = localStorage.getItem(cacheKey);
-  if (cached) { try { clientsIndex = JSON.parse(cached); renderGrid(); } catch(e){} }
+  clientsIndex = [];
   setSync(true);
-  try { const f = await apiGet(`clients/${currentUserId}/index.json`); if(f) { clientsIndex = JSON.parse(decB64(f.content)); localStorage.setItem(cacheKey, JSON.stringify(clientsIndex)); } else { clientsIndex = []; } }
-  catch(e) { if(!cached) clientsIndex = []; }
+  try {
+    if (isAdmin) {
+      // Admin fetches all trainers' indexes
+      for (const t of Object.values(USERS)) {
+        try {
+          const f = await apiGet(`clients/${t.id}/index.json`);
+          if (f) {
+            const arr = JSON.parse(decB64(f.content));
+            arr.forEach(c => { c.trainerId = t.id; c.trainerName = t.name; });
+            clientsIndex = clientsIndex.concat(arr);
+          }
+        } catch(e) {}
+      }
+    } else {
+      const f = await apiGet(`clients/${currentUserId}/index.json`);
+      if (f) {
+        clientsIndex = JSON.parse(decB64(f.content));
+        clientsIndex.forEach(c => { c.trainerId = currentUserId; c.trainerName = currentUserName; });
+      }
+    }
+  } catch(e) { console.error(e); }
   finally { setSync(false); renderGrid(); }
 }
-async function saveIndex() { const p=`clients/${currentUserId}/index.json`; const e=await apiGet(p); await apiPut(p, clientsIndex, e?e.sha:null, `Idx Update`); localStorage.setItem(`gb_idx_${currentUserId}`, JSON.stringify(clientsIndex)); }
-async function getClient(id) { const f=await apiGet(`clients/${currentUserId}/${id}.json`); return f?JSON.parse(decB64(f.content)):null; }
-async function saveClientData(c) { const p=`clients/${currentUserId}/${c.id}.json`; const e=await apiGet(p); await apiPut(p, c, e?e.sha:null, `Save ${c.name}`); }
-async function deleteClientData(id) { const p=`clients/${currentUserId}/${id}.json`; const e=await apiGet(p); if(e) await apiDel(p, e.sha, `Del ${id}`); }
+
+async function saveIndex(targetTrainerId) {
+  const tId = targetTrainerId || currentUserId;
+  const trainerClients = clientsIndex.filter(c => c.trainerId === tId).map(({trainerId, trainerName, ...rest}) => rest);
+  const p = `clients/${tId}/index.json`;
+  const e = await apiGet(p);
+  await apiPut(p, trainerClients, e ? e.sha : null, `Idx Update ${tId}`);
+}
+
+async function getClient(id, trainerId) {
+  const tId = trainerId || currentUserId;
+  const f = await apiGet(`clients/${tId}/${id}.json`);
+  return f ? JSON.parse(decB64(f.content)) : null;
+}
+
+async function saveClientData(client, trainerId) {
+  const tId = trainerId || currentUserId;
+  const p = `clients/${tId}/${client.id}.json`;
+  const e = await apiGet(p);
+  await apiPut(p, client, e ? e.sha : null, `Save ${client.name}`);
+}
+
+async function deleteClientData(id, trainerId) {
+  const tId = trainerId || currentUserId;
+  const p = `clients/${tId}/${id}.json`;
+  const e = await apiGet(p);
+  if (e) await apiDel(p, e.sha, `Del ${id}`);
+}
 
 /* ============ TRAINER PROFILE ============ */
 async function loadTrainer() { try { const f=await apiGet(`trainers/${currentUserId}.json`); if(f) trainerProfile=JSON.parse(decB64(f.content)); else trainerProfile={name:currentUserName, photo:''}; } catch(e) { trainerProfile={name:currentUserName, photo:''}; } updateBadge(); }
@@ -494,7 +557,24 @@ document.getElementById('saveTrainerBtn').addEventListener('click', async () => 
 /* ============ LOGIN ============ */
 function checkLogin() { const li=sessionStorage.getItem('gb_s')==='true'; currentUserId=sessionStorage.getItem('gb_uid'); currentUserName=sessionStorage.getItem('gb_uname')||'Entrenador'; if(li&&currentUserId) showApp(); else showLogin(); }
 function showLogin() { document.getElementById('loginScreen').classList.remove('is-hidden'); document.getElementById('app').classList.remove('is-active'); }
-async function showApp() { document.getElementById('loginScreen').classList.add('is-hidden'); document.getElementById('app').classList.add('is-active'); await loadTrainer(); await getIndex(); }
+async function showApp() {
+  isAdmin = currentUserId === 'admin';
+  document.getElementById('loginScreen').classList.add('is-hidden');
+  document.getElementById('app').classList.add('is-active');
+  
+  if (isAdmin) {
+    document.getElementById('trainerFilter').style.display = 'block';
+    document.getElementById('trainersBtn').style.display = 'inline-flex';
+    document.getElementById('trainerAssignRow').style.display = 'grid';
+    
+    const opts = Object.values(USERS).map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+    document.getElementById('trainerFilter').innerHTML = `<option value="all">Todos los entrenadores</option>` + opts;
+    document.getElementById('clientTrainerId').innerHTML = opts;
+  }
+  
+  await loadTrainer();
+  await getIndex();
+}
 document.getElementById('loginForm').addEventListener('submit', async e => { e.preventDefault(); const p=document.getElementById('passwordInput').value; if(!USERS[p]) { document.getElementById('loginError').textContent='Contraseña incorrecta.'; return; } const b=document.getElementById('loginBtn'); b.disabled=true; b.innerHTML='<div class="spinner"></div>'; currentUserId=USERS[p].id; currentUserName=USERS[p].name; try { const t=await apiGet(`clients/${currentUserId}/index.json`); if(t||t===null) { sessionStorage.setItem('gb_s','true'); sessionStorage.setItem('gb_uid',currentUserId); sessionStorage.setItem('gb_uname',currentUserName); document.getElementById('loginError').textContent=''; showApp(); } } catch(err) { document.getElementById('loginError').textContent='Token vencido.'; currentUserId=null; } finally { b.disabled=false; b.innerHTML='<span>Entrar al panel →</span>'; } });
 document.getElementById('logoutBtn').addEventListener('click', () => { sessionStorage.clear(); currentUserId=null; checkLogin(); });
 
@@ -502,9 +582,15 @@ document.getElementById('logoutBtn').addEventListener('click', () => { sessionSt
 function renderGrid() {
   const grid = document.getElementById('clientsGrid');
   const s = document.getElementById('searchInput').value.toLowerCase().trim();
+  const filterVal = isAdmin ? document.getElementById('trainerFilter').value : currentUserId;
+  
   document.getElementById('statTotal').textContent = clientsIndex.length;
   const wAgo = new Date(Date.now() - 7*24*60*60*1000); let wM=0; clientsIndex.forEach(c => { if(c.lastDate && new Date(c.lastDate)>=wAgo) wM++; }); document.getElementById('statWeek').textContent = wM;
-  let f = clientsIndex; if(s) f = clientsIndex.filter(c => (c.name&&c.name.toLowerCase().includes(s)) || (c.shortId&&c.shortId.includes(s)));
+  
+  let f = clientsIndex; 
+  if (isAdmin && filterVal !== 'all') f = f.filter(c => c.trainerId === filterVal);
+  if (s) f = f.filter(c => (c.name&&c.name.toLowerCase().includes(s)) || (c.shortId&&c.shortId.includes(s)));
+  
   if(f.length===0) { grid.innerHTML = `<div class="empty-state"><h3>${clientsIndex.length===0?'Todavía no hay clientes':'Sin resultados'}</h3></div>`; return; }
   
   const now = new Date();
@@ -512,25 +598,30 @@ function renderGrid() {
   
   grid.innerHTML = f.map(c => {
     let pay = '';
-    if(c.paymentStatus === 'Vencido') {
-      pay = '<div class="payment-alert">VENCIDA</div>';
-    } else if(c.paymentDay) {
-      const pDay = parseInt(c.paymentDay);
-      if(pDay >= today) {
-        const diff = pDay - today;
-        if(diff <= 3) pay = `<div class="payment-alert" style="background:var(--color-success);">VENCE ${diff}D</div>`;
-      } else {
-        if(c.paymentStatus === 'Pendiente') pay = '<div class="payment-alert">VENCIDA</div>';
-      }
-    }
+    if(c.paymentStatus === 'Vencido') pay = '<div class="payment-alert">VENCIDA</div>';
+    else if(c.paymentDay) { const pDay = parseInt(c.paymentDay); if(pDay >= today) { const diff = pDay - today; if(diff <= 3) pay = `<div class="payment-alert" style="background:var(--color-success);">VENCE ${diff}D</div>`; } else if(c.paymentStatus === 'Pendiente') pay = '<div class="payment-alert">VENCIDA</div>'; }
     const d = c.firstWeight&&c.lastWeight ? (c.lastWeight-c.firstWeight) : null;
     let pHtml = '<span>SIN MED</span>'; if(c.measurementsCount===1) pHtml='<span>1 MED</span>'; else if(d!=null) { if(d>0) pHtml=`<span style="color:var(--color-success)">▲ ${d.toFixed(1)}kg</span>`; else if(d<0) pHtml=`<span style="color:var(--color-danger)">▼ ${Math.abs(d).toFixed(1)}kg</span>`; else pHtml='<span>—</span>'; }
     const ph = c.photo ? `<img src="${c.photo}">` : `<div class="placeholder">${getInit(c.name)}</div>`;
-    return `<div class="client-card" data-id="${c.id}"><div class="client-card-photo">${ph}<div class="client-card-id">ID: ${c.shortId||'--------'}</div>${pay}</div><div class="client-card-name">${escHtml(c.name||'S/N')}</div><div class="client-card-goal">${escHtml(c.goal||'')}</div><div class="client-card-meta"><span>${c.measurementsCount||0} meds</span>${pHtml}</div></div>`;
+    const tLabel = isAdmin ? `<div class="client-card-trainer">${c.trainerName||'S/D'}</div>` : '';
+    return `<div class="client-card" data-id="${c.id}" data-trainer="${c.trainerId}"><div class="client-card-photo">${ph}<div class="client-card-id">ID: ${c.shortId||'--------'}</div>${pay}</div><div class="client-card-name">${escHtml(c.name||'S/N')}</div>${tLabel}<div class="client-card-goal">${escHtml(c.goal||'')}</div><div class="client-card-meta"><span>${c.measurementsCount||0} meds</span>${pHtml}</div></div>`;
   }).join('');
-  grid.querySelectorAll('.client-card').forEach(card => card.addEventListener('click', () => openClient(card.dataset.id)));
+  grid.querySelectorAll('.client-card').forEach(card => card.addEventListener('click', () => openClient(card.dataset.id, card.dataset.trainer)));
 }
 document.getElementById('searchInput').addEventListener('input', renderGrid);
+if (isAdmin) document.getElementById('trainerFilter').addEventListener('change', renderGrid);
+
+/* ============ TRAINERS MODAL ============ */
+document.getElementById('trainersBtn').addEventListener('click', () => {
+  const body = document.getElementById('trainersModalBody');
+  body.innerHTML = Object.values(USERS).map(t => {
+    const tClients = clientsIndex.filter(c => c.trainerId === t.id);
+    const totalRevenue = tClients.reduce((sum, c) => sum + (c.paymentAmount ? parseFloat(c.paymentAmount) : 0), 0);
+    const overdueCount = tClients.filter(c => c.paymentStatus === 'Vencido').length;
+    return `<div class="pay-list-item"><div class="info"><h4>${t.name}</h4><p>Clientes Activos: ${tClients.length} | Vencidos: ${overdueCount}</p><p>Facturación Mensual: ${fmtMoney(totalRevenue)}</p></div></div>`;
+  }).join('');
+  openModal('trainersModal');
+});
 
 /* ============ BROADCAST LOGIC ============ */
 document.getElementById('broadcastBtn').addEventListener('click', () => {
@@ -538,80 +629,37 @@ document.getElementById('broadcastBtn').addEventListener('click', () => {
   renderBroadcastList('');
   openModal('broadcastModal');
 });
-
-document.getElementById('broadcastMsg').addEventListener('input', (e) => {
-  renderBroadcastList(e.target.value);
-});
+document.getElementById('broadcastMsg').addEventListener('input', (e) => renderBroadcastList(e.target.value));
 
 function renderBroadcastList(msg) {
   const list = document.getElementById('broadcastList');
   const recipients = clientsIndex.filter(c => c.phone);
   const finalMsg = msg.trim() || 'Hola!';
-  
-  if (recipients.length === 0) {
-    list.innerHTML = '<p style="text-align:center; color:var(--color-text-secondary);">No hay clientes con teléfono cargado.</p>';
-    return;
-  }
-  
-  list.innerHTML = recipients.map(c => `
-    <div class="pay-list-item" id="bc-${c.id}">
-      <div class="info"><h4>${escHtml(c.name)}</h4><p>${c.phone}</p></div>
-      <a href="https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(finalMsg)}" target="_blank" class="btn btn-wa" onclick="markBroadcastSent('${c.id}')">Enviar</a>
-    </div>
-  `).join('');
+  if (recipients.length === 0) { list.innerHTML = '<p style="text-align:center; color:var(--color-text-secondary);">No hay clientes con teléfono cargado.</p>'; return; }
+  list.innerHTML = recipients.map(c => `<div class="pay-list-item" id="bc-${c.id}"><div class="info"><h4>${escHtml(c.name)}</h4><p>${c.phone}</p></div><a href="https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(finalMsg)}" target="_blank" class="btn btn-wa" onclick="markBroadcastSent('${c.id}')">Enviar</a></div>`).join('');
 }
-
-function markBroadcastSent(id) {
-  const item = document.getElementById(`bc-${id}`);
-  if (item) {
-    const btn = item.querySelector('.btn-wa');
-    if (btn) {
-      btn.textContent = 'Enviado ✓';
-      btn.classList.add('sent');
-      btn.onclick = (e) => e.preventDefault();
-    }
-  }
-}
+function markBroadcastSent(id) { const item = document.getElementById(`bc-${id}`); if (item) { const btn = item.querySelector('.btn-wa'); if (btn) { btn.textContent = 'Enviado ✓'; btn.classList.add('sent'); btn.onclick = (e) => e.preventDefault(); } } }
 
 /* ============ PAYMENTS ============ */
 document.getElementById('payBtn').addEventListener('click', () => {
-  const now = new Date(); 
-  const today = now.getDate();
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  
+  const now = new Date(); const today = now.getDate(); const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const overdue = clientsIndex.filter(c => c.paymentStatus === 'Vencido');
   const pendingLate = clientsIndex.filter(c => c.paymentStatus === 'Pendiente' && c.paymentDay && parseInt(c.paymentDay) < today);
-  
-  const dues = clientsIndex.filter(c => {
-    if(!c.paymentDay) return false;
-    const pDay = parseInt(c.paymentDay);
-    let diff = pDay - today;
-    if (diff < 0) diff = (daysInMonth - today) + pDay;
-    return diff >= 0 && diff <= 7;
-  });
-  
+  const dues = clientsIndex.filter(c => { if(!c.paymentDay) return false; const pDay = parseInt(c.paymentDay); let diff = pDay - today; if (diff < 0) diff = (daysInMonth - today) + pDay; return diff >= 0 && diff <= 7; });
   const all = [...overdue, ...pendingLate, ...dues];
   const body = document.getElementById('payModalBody');
-  
-  if(all.length === 0) { 
-    body.innerHTML = '<p style="text-align:center; color:var(--color-text-secondary); padding:2rem;">No hay vencimientos en los próximos 7 días. ¡Todo al día!</p>'; 
-  } else {
-    let totalDue = 0;
-    all.forEach(c => { if(c.paymentAmount) totalDue += parseFloat(c.paymentAmount); });
-    
-    let html = `<div class="pay-total-banner">
-      <div class="lbl">Total a cobrar esta semana</div>
-      <div class="amt">${fmtMoney(totalDue)}</div>
-    </div>`;
-
+  if(all.length === 0) { body.innerHTML = '<p style="text-align:center; color:var(--color-text-secondary); padding:2rem;">No hay vencimientos en los próximos 7 días. ¡Todo al día!</p>'; } 
+  else {
+    let totalDue = 0; all.forEach(c => { if(c.paymentAmount) totalDue += parseFloat(c.paymentAmount); });
+    let html = `<div class="pay-total-banner"><div class="lbl">Total a cobrar esta semana</div><div class="amt">${fmtMoney(totalDue)}</div></div>`;
     html += all.map(c => {
       const amountText = c.paymentAmount ? fmtMoney(c.paymentAmount) : 'Sin precio';
       const waMsg = `Hola ${c.name}! Te recordamos que tu cuota del gym vence el día ${c.paymentDay} de cada mes. Monto: ${amountText}. ¡Cualquier cosa avisanos! 💪`;
       const waLink = c.phone ? `<a href="https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(waMsg)}" target="_blank" class="btn btn-primary" style="padding:0.5rem 1rem; font-size:0.7rem;">WhatsApp</a>` : '<span style="font-size:0.7rem; color:var(--color-text-secondary);">Sin teléfono</span>';
       const statusText = c.paymentStatus === 'Vencido' ? '(VENCIDA)' : (c.paymentStatus === 'Pendiente' ? '(ATRASADA)' : '');
-      return `<div class="pay-list-item"><div class="info"><h4>${escHtml(c.name)}</h4><p>Paga los días ${c.paymentDay} - ${amountText} ${statusText}</p></div>${waLink}</div>`;
+      const tLabel = isAdmin ? ` (${c.trainerName})` : '';
+      return `<div class="pay-list-item"><div class="info"><h4>${escHtml(c.name)}${tLabel}</h4><p>Paga los días ${c.paymentDay} - ${amountText} ${statusText}</p></div>${waLink}</div>`;
     }).join('');
-    
     body.innerHTML = html;
   }
   openModal('payModal');
@@ -620,13 +668,15 @@ document.getElementById('payBtn').addEventListener('click', () => {
 /* ============ ADD/EDIT CLIENT ============ */
 document.getElementById('addClientBtn').addEventListener('click', () => openClientForm());
 
-function openClientForm(id=null) {
+function openClientForm(id=null, trainerId=null) {
   document.getElementById('clientId').value = id || '';
   routineData = [];
   const cont = document.getElementById('routineBuilderContainer');
   cont.innerHTML = '';
+  currentClientTrainerId = trainerId || currentUserId;
+  
   if(id) {
-    const c = clientsIndex.find(x => x.id === id); if(!c) return;
+    const c = clientsIndex.find(x => x.id === id && x.trainerId === currentClientTrainerId); if(!c) return;
     document.getElementById('clientModalTitle').innerHTML = 'Editar <span class="accent">cliente</span>';
     document.getElementById('clientName').value = c.name || '';
     document.getElementById('clientBirthdate').value = c.birthdate || '';
@@ -640,12 +690,14 @@ function openClientForm(id=null) {
     document.getElementById('clientPaymentAmount').value = c.paymentAmount || '';
     document.getElementById('clientDiet').value = c.diet || '';
     document.getElementById('clientNotes').value = c.notes || '';
+    if(isAdmin) document.getElementById('clientTrainerId').value = c.trainerId || currentUserId;
     if(c.routine) { c.routine.forEach(r => addExRow(r.day, r.ex, r.sets, r.reps)); }
   } else {
     document.getElementById('clientModalTitle').innerHTML = 'Nuevo <span class="accent">cliente</span>';
     ['clientName','clientBirthdate','clientPhone','clientEmail','clientGoal','clientHeight','clientDiet','clientNotes','clientPaymentDay','clientPaymentAmount'].forEach(i => document.getElementById(i).value = '');
     document.getElementById('clientStartDate').value = todayISO();
     document.getElementById('clientPaymentStatus').value = 'Al día';
+    if(isAdmin) document.getElementById('clientTrainerId').value = currentUserId;
   }
   openModal('clientModal');
 }
@@ -654,11 +706,7 @@ function addExRow(day='', ex='', sets='', reps='') {
   const cont = document.getElementById('routineBuilderContainer');
   const div = document.createElement('div');
   div.className = 'routine-builder-row';
-  div.innerHTML = `<input type="text" placeholder="Día (Ej: Lunes)" value="${day}" style="grid-column: span 2;">
-                   <select>${EXERCISES.map(e => `<option ${e===ex?'selected':''}>${e}</option>`).join('')}</select>
-                   <input type="text" placeholder="Series" value="${sets}">
-                   <input type="text" placeholder="Reps" value="${reps}">
-                   <button type="button" data-del>X</button>`;
+  div.innerHTML = `<input type="text" placeholder="Día (Ej: Lunes)" value="${day}" style="grid-column: span 2;"><select>${EXERCISES.map(e => `<option ${e===ex?'selected':''}>${e}</option>`).join('')}</select><input type="text" placeholder="Series" value="${sets}"><input type="text" placeholder="Reps" value="${reps}"><button type="button" data-del>X</button>`;
   div.querySelector('[data-del]').addEventListener('click', () => div.remove());
   cont.appendChild(div);
 }
@@ -668,6 +716,8 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
   const id = document.getElementById('clientId').value;
   const name = document.getElementById('clientName').value.trim();
   if(!name) { showToast('El nombre es obligatorio', 'error'); return; }
+  
+  const assignedTrainerId = isAdmin ? document.getElementById('clientTrainerId').value : currentUserId;
   const b = document.getElementById('saveClientBtn'); b.disabled=true; b.innerHTML='<div class="spinner"></div>'; setSync(true);
   
   const rRows = document.querySelectorAll('.routine-builder-row');
@@ -676,8 +726,14 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
 
   try {
     let cd;
-    if(id) { cd = await getClient(id); } 
-    else { cd = { id: uid(), shortId: genShortId(), photo: '', measurements: [], createdAt: new Date().toISOString() }; }
+    const oldTrainerId = currentClientTrainerId;
+    
+    if (id) { 
+      cd = await getClient(id, oldTrainerId); 
+    } else { 
+      cd = { id: uid(), shortId: genShortId(), photo: '', measurements: [], createdAt: new Date().toISOString() }; 
+    }
+    
     cd.name = name;
     cd.birthdate = document.getElementById('clientBirthdate').value;
     cd.phone = document.getElementById('clientPhone').value.trim();
@@ -692,28 +748,42 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
     cd.diet = document.getElementById('clientDiet').value.trim();
     cd.notes = document.getElementById('clientNotes').value.trim();
 
-    await saveClientData(cd);
-    const idx = clientsIndex.findIndex(c => c.id === cd.id);
-    const entry = { id:cd.id, shortId:cd.shortId, name:cd.name, goal:cd.goal, photo:cd.photo, height:cd.height, phone:cd.phone, email:cd.email, startDate:cd.startDate, paymentDay:cd.paymentDay, paymentStatus:cd.paymentStatus, paymentAmount:cd.paymentAmount, diet:cd.diet, notes:cd.notes, measurementsCount:cd.measurements?cd.measurements.length:0, lastDate:cd.measurements&&cd.measurements.length>0?[...cd.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0].date:null, firstWeight:cd.measurements&&cd.measurements.length>0?[...cd.measurements].sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0].weight:null, lastWeight:cd.measurements&&cd.measurements.length>0?[...cd.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0].weight:null };
-    if(idx>-1) clientsIndex[idx]=entry; else clientsIndex.push(entry);
-    await saveIndex();
-    showToast(id?'Cliente actualizado':'Cliente agregado');
+    // If Admin moved the client to a different trainer
+    if (isAdmin && id && oldTrainerId !== assignedTrainerId) {
+      await deleteClientData(id, oldTrainerId);
+      clientsIndex = clientsIndex.filter(c => !(c.id === id && c.trainerId === oldTrainerId));
+      await saveIndex(oldTrainerId);
+    }
+
+    await saveClientData(cd, assignedTrainerId);
+    
+    cd.trainerId = assignedTrainerId;
+    cd.trainerName = USERS[Object.keys(USERS).find(k => USERS[k].id === assignedTrainerId)].name;
+    const entry = { ...cd, measurementsCount: cd.measurements ? cd.measurements.length : 0, lastDate: cd.measurements && cd.measurements.length > 0 ? [...cd.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0].date : null, firstWeight: cd.measurements && cd.measurements.length > 0 ? [...cd.measurements].sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0].weight : null, lastWeight: cd.measurements && cd.measurements.length > 0 ? [...cd.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0].weight : null };
+    
+    const idx = clientsIndex.findIndex(c => c.id === cd.id && c.trainerId === assignedTrainerId);
+    if(idx > -1) clientsIndex[idx] = entry; else clientsIndex.push(entry);
+    
+    await saveIndex(assignedTrainerId);
+    
+    showToast(id ? 'Cliente actualizado' : 'Cliente agregado');
     closeModal('clientModal');
-    if(id === currentClientId) await renderClientDetail(id); else renderGrid();
+    if(id === currentClientId) await renderClientDetail(id, assignedTrainerId); else renderGrid();
   } catch(e) { showToast('Error al guardar', 'error'); } finally { b.disabled=false; b.innerHTML='Guardar cliente'; setSync(false); }
 });
 
 /* ============ CLIENT DETAIL ============ */
-async function openClient(id) {
+async function openClient(id, trainerId=null) {
   currentClientId = id;
+  currentClientTrainerId = trainerId || currentUserId;
   document.getElementById('dashboardView').style.display = 'none';
   document.getElementById('clientView').style.display = 'block';
   document.getElementById('topbarBrand').classList.add('has-back');
-  await renderClientDetail(id);
+  await renderClientDetail(id, currentClientTrainerId);
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 async function backToDash() {
-  currentClientId = null;
+  currentClientId = null; currentClientTrainerId = null;
   document.getElementById('clientView').style.display = 'none';
   document.getElementById('dashboardView').style.display = 'block';
   document.getElementById('topbarBrand').classList.remove('has-back');
@@ -731,8 +801,8 @@ function genChartSVG(ms, key, color) {
   return `<svg viewBox="0 0 100 40" preserveAspectRatio="none" style="width:100%; height:200px; position:absolute; top:0; left:0;"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>`;
 }
 
-async function renderClientDetail(id) {
-  setSync(true); const c = await getClient(id); setSync(false);
+async function renderClientDetail(id, trainerId) {
+  setSync(true); const c = await getClient(id, trainerId); setSync(false);
   if(!c) { showToast('No encontrado', 'error'); backToDash(); return; }
   const cont = document.getElementById('clientContent');
   const ph = c.photo ? `<img src="${c.photo}">` : `<div class="placeholder">${getInit(c.name)}</div>`;
@@ -759,7 +829,8 @@ async function renderClientDetail(id) {
   let waHtml = '';
   if(c.phone) { let msg = `Hola ${c.name}! Tu resumen de hoy:\n\n`; if(last) { msg += `⚖️ Peso: ${last.weight}kg\n`; if(prev&&last.weight&&prev.weight) { const diff=(parseFloat(last.weight)-parseFloat(prev.weight)).toFixed(1); msg += `📊 Cambio: ${diff>0?'+':''}${diff}kg\n`; } if(last.bodyFat) msg += `📉 % Grasa: ${last.bodyFat}%\n`; } msg += `\n¡A seguir con todo! 💥`; waHtml = `<a href="https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(msg)}" target="_blank" class="action-btn wa">WhatsApp</a>`; }
 
-  const portalLink = `${window.location.origin}${window.location.pathname}?portal=${currentUserId}&id=${c.shortId}`;
+  const portalLink = `${window.location.origin}${window.location.pathname}?portal=${trainerId}&id=${c.shortId}`;
+  const tLabel = isAdmin ? `<div class="client-card-trainer" style="margin-bottom:1rem; text-align:left;">Entrenador: ${c.trainerName || 'N/A'}</div>` : '';
   
   let rHtml = '<p class="notes-empty">Sin rutina asignada.</p>';
   if(c.routine && c.routine.length > 0) rHtml = `<table class="routine-table"><thead><tr><th>Día</th><th>Ejercicio</th><th>Series</th><th>Reps</th></tr></thead><tbody>${c.routine.map(r => `<tr><td>${r.day||''}</td><td>${r.ex||''}</td><td>${r.sets||''}</td><td>${r.reps||''}</td></tr>`).join('')}</tbody></table>`;
@@ -773,6 +844,7 @@ async function renderClientDetail(id) {
       <div class="client-info-block">
         <div class="label">Cliente ID: ${c.shortId || '--------'}</div>
         <div class="name">${escHtml(c.name)}</div>
+        ${tLabel}
         ${c.goal?`<div style="font-size:1rem; margin-bottom:1.5rem;">${escHtml(c.goal)}</div>`:''}
         <div class="client-info-grid">
           <div class="info-cell"><div class="lbl">Altura</div><div class="val">${c.height?c.height+'cm':'—'}</div></div>
@@ -798,59 +870,56 @@ async function renderClientDetail(id) {
     <section class="notes-section"><div class="label">Dieta</div><div class="notes-content ${!c.diet?'notes-empty':''}">${c.diet?escHtml(c.diet):'Sin dieta.'}</div></section>
   `;
   
-  document.getElementById('addMBtn').addEventListener('click', () => openMForm(c.id));
-  document.getElementById('editClientBtn').addEventListener('click', () => openClientForm(c.id));
+  document.getElementById('addMBtn').addEventListener('click', () => openMForm(c.id, trainerId));
+  document.getElementById('editClientBtn').addEventListener('click', () => openClientForm(c.id, trainerId));
   document.getElementById('sendProfileBtn').addEventListener('click', () => { 
     if (c.phone) {
       const waMsg = `Aqui esta tu Perfil de Gym Brothers: ${portalLink}`;
       const waLink = `https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(waMsg)}`;
       window.open(waLink, '_blank');
     } else {
-      navigator.clipboard.writeText(portalLink).then(() => {
-        showToast('Cliente sin teléfono. Link copiado!', 'error');
-      }).catch(() => {
-        showToast('Error al copiar link', 'error');
-      });
+      navigator.clipboard.writeText(portalLink).then(() => showToast('Cliente sin teléfono. Link copiado!', 'error')).catch(() => showToast('Error al copiar link', 'error'));
     }
   });
-  document.getElementById('delClientBtn').addEventListener('click', () => showConfirm('Eliminar', `Eliminar a ${c.name}?`, async () => { setSync(true); try { await deleteClientData(c.id); clientsIndex = clientsIndex.filter(x => x.id !== c.id); await saveIndex(); showToast('Eliminado'); backToDash(); } catch(e){ showToast('Error','error'); } finally { setSync(false); } }));
+  document.getElementById('delClientBtn').addEventListener('click', () => showConfirm('Eliminar', `Eliminar a ${c.name}?`, async () => { setSync(true); try { await deleteClientData(c.id, trainerId); clientsIndex = clientsIndex.filter(x => !(x.id === c.id && x.trainerId === trainerId)); await saveIndex(trainerId); showToast('Eliminado'); backToDash(); } catch(e){ showToast('Error','error'); } finally { setSync(false); } }));
   document.getElementById('photoInput').addEventListener('change', handlePhotoUpload);
-  document.querySelectorAll('.delete-measurement').forEach(b => b.addEventListener('click', () => { const mid=b.dataset.mid; showConfirm('Eliminar', `Eliminar medición?`, async () => { setSync(true); try { c.measurements = c.measurements.filter(x => x.id !== mid); await saveClientData(c); const idx=clientsIndex.findIndex(x=>x.id===c.id); if(idx>-1) { clientsIndex[idx].measurementsCount=c.measurements.length; await saveIndex(); } showToast('Eliminada'); renderClientDetail(c.id); } catch(e){ showToast('Error','error'); } finally { setSync(false); } }); }));
+  document.querySelectorAll('.delete-measurement').forEach(b => b.addEventListener('click', () => { const mid=b.dataset.mid; showConfirm('Eliminar', `Eliminar medición?`, async () => { setSync(true); try { c.measurements = c.measurements.filter(x => x.id !== mid); await saveClientData(c, trainerId); const idx=clientsIndex.findIndex(x=>x.id===c.id&&x.trainerId===trainerId); if(idx>-1) { clientsIndex[idx].measurementsCount=c.measurements.length; await saveIndex(trainerId); } showToast('Eliminada'); renderClientDetail(c.id, trainerId); } catch(e){ showToast('Error','error'); } finally { setSync(false); } }); }));
 }
 
 async function handlePhotoUpload(e) {
   const f = e.target.files[0]; if(!f) return;
-  const r = new FileReader(); r.onload = ev => { const img = new Image(); img.onload = async () => { const c=document.createElement('canvas'); let {width,height}=img; if(width>height&&width>600){height=height*600/width;width=600;} else if(height>600){width=width*600/height;height=600;} c.width=width;c.height=height; c.getContext('2d').drawImage(img,0,0,width,height); const dU=c.toDataURL('image/jpeg',0.8); setSync(true); try { const cd = await getClient(currentClientId); cd.photo = dU; await saveClientData(cd); const idx=clientsIndex.findIndex(x=>x.id===cd.id); if(idx>-1){clientsIndex[idx].photo=dU; await saveIndex();} showToast('Foto actualizada'); renderClientDetail(currentClientId); } catch(e){ showToast('Error','error'); } finally { setSync(false); } }; img.src = ev.target.result; }; r.readAsDataURL(f);
+  const r = new FileReader(); r.onload = ev => { const img = new Image(); img.onload = async () => { const c=document.createElement('canvas'); let {width,height}=img; if(width>height&&width>600){height=height*600/width;width=600;} else if(height>600){width=width*600/height;height=600;} c.width=width;c.height=height; c.getContext('2d').drawImage(img,0,0,width,height); const dU=c.toDataURL('image/jpeg',0.8); setSync(true); try { const cd = await getClient(currentClientId, currentClientTrainerId); cd.photo = dU; await saveClientData(cd, currentClientTrainerId); const idx=clientsIndex.findIndex(x=>x.id===cd.id&&x.trainerId===currentClientTrainerId); if(idx>-1){clientsIndex[idx].photo=dU; await saveIndex(currentClientTrainerId);} showToast('Foto actualizada'); renderClientDetail(currentClientId, currentClientTrainerId); } catch(e){ showToast('Error','error'); } finally { setSync(false); } }; img.src = ev.target.result; }; r.readAsDataURL(f);
 }
 
 /* ============ MEASUREMENTS ============ */
-function openMForm(cid, mid=null) {
+function openMForm(cid, trainerId, mid=null) {
   document.getElementById('measurementClientId').value = cid; document.getElementById('measurementId').value = mid || '';
+  document.getElementById('measurementClientId').dataset.trainerId = trainerId;
   ['measurementDate','mWeight','mBodyFat','mMuscle','mChest','mWaist','mArmL','mThighL','mNotes'].forEach(i => document.getElementById(i).value = '');
   currentMPhoto = ''; document.getElementById('mPhotoInput').value = ''; document.getElementById('mPhotoPreview').innerHTML = '<span style="color:var(--color-text-secondary); font-size:0.8rem;">Sin foto</span>';
-  (async () => { const fc = await getClient(cid); if(mid) { const m = fc.measurements.find(x => x.id === mid); if(!m) return; document.getElementById('measurementDate').value = m.date; document.getElementById('mWeight').value = m.weight||''; document.getElementById('mBodyFat').value = m.bodyFat||''; document.getElementById('mMuscle').value = m.muscle||''; document.getElementById('mChest').value = m.chest||''; document.getElementById('mWaist').value = m.waist||''; document.getElementById('mArmL').value = m.armL||''; document.getElementById('mThighL').value = m.thighL||''; document.getElementById('mNotes').value = m.notes||''; if(m.photo){ currentMPhoto = m.photo; document.getElementById('mPhotoPreview').innerHTML = `<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover;">`; } } else { document.getElementById('measurementDate').value = todayISO(); const l = fc.measurements && fc.measurements.length > 0 ? [...fc.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0] : null; if(l) { document.getElementById('mWeight').value = l.weight||''; document.getElementById('mBodyFat').value = l.bodyFat||''; } } updateIMCPrev(); })();
+  (async () => { const fc = await getClient(cid, trainerId); if(mid) { const m = fc.measurements.find(x => x.id === mid); if(!m) return; document.getElementById('measurementDate').value = m.date; document.getElementById('mWeight').value = m.weight||''; document.getElementById('mBodyFat').value = m.bodyFat||''; document.getElementById('mMuscle').value = m.muscle||''; document.getElementById('mChest').value = m.chest||''; document.getElementById('mWaist').value = m.waist||''; document.getElementById('mArmL').value = m.armL||''; document.getElementById('mThighL').value = m.thighL||''; document.getElementById('mNotes').value = m.notes||''; if(m.photo){ currentMPhoto = m.photo; document.getElementById('mPhotoPreview').innerHTML = `<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover;">`; } } else { document.getElementById('measurementDate').value = todayISO(); const l = fc.measurements && fc.measurements.length > 0 ? [...fc.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0] : null; if(l) { document.getElementById('mWeight').value = l.weight||''; document.getElementById('mBodyFat').value = l.bodyFat||''; } } updateIMCPrev(); })();
   openModal('measurementModal');
 }
 document.getElementById('mPhotoInput').addEventListener('change', e => { const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=ev => { const img=new Image(); img.onload=()=>{ const c=document.createElement('canvas'); let {width,height}=img; if(width>height&&width>600){height=height*600/width;width=600;} else if(height>600){width=width*600/height;height=600;} c.width=width;c.height=height; c.getContext('2d').drawImage(img,0,0,width,height); currentMPhoto=c.toDataURL('image/jpeg',0.7); document.getElementById('mPhotoPreview').innerHTML=`<img src="${currentMPhoto}" style="width:100%;height:100%;object-fit:cover;">`; }; img.src=ev.target.result; }; r.readAsDataURL(f); });
 function updateIMCPrev() { const w=parseFloat(document.getElementById('mWeight').value); const cid=document.getElementById('measurementClientId').value; const c=clientsIndex.find(x=>x.id===cid); const h=c?c.height:null; document.getElementById('mIMC').value = calcIMC(w,h) || ''; }
 document.getElementById('mWeight').addEventListener('input', updateIMCPrev);
 document.getElementById('saveMeasurementBtn').addEventListener('click', async () => {
-  const cid = document.getElementById('measurementClientId').value; const mid = document.getElementById('measurementId').value; const date = document.getElementById('measurementDate').value;
+  const cid = document.getElementById('measurementClientId').value; const mid = document.getElementById('measurementId').value; const date = document.getElementById('measurementDate').value; const tId = document.getElementById('measurementClientId').dataset.trainerId;
   if(!date) { showToast('Fecha obligatoria', 'error'); return; }
   const b = document.getElementById('saveMeasurementBtn'); b.disabled=true; b.innerHTML='<div class="spinner"></div>'; setSync(true);
   try {
-    const c = await getClient(cid); if(!c.measurements) c.measurements = [];
+    const c = await getClient(cid, tId); if(!c.measurements) c.measurements = [];
     const data = { date, weight: document.getElementById('mWeight').value||null, bodyFat: document.getElementById('mBodyFat').value||null, muscle: document.getElementById('mMuscle').value||null, chest: document.getElementById('mChest').value||null, waist: document.getElementById('mWaist').value||null, armL: document.getElementById('mArmL').value||null, thighL: document.getElementById('mThighL').value||null, photo: currentMPhoto, notes: document.getElementById('mNotes').value };
     if(mid) { const mi = c.measurements.findIndex(m => m.id === mid); if(mi>-1) c.measurements[mi] = {...c.measurements[mi], ...data}; } else { c.measurements.push({id: uid(), ...data}); }
-    await saveClientData(c);
-    const idx = clientsIndex.findIndex(x => x.id === cid); if(idx>-1) { const s=[...c.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||'')); const fS=[...c.measurements].sort((a,b)=>(a.date||'').localeCompare(b.date||'')); clientsIndex[idx].measurementsCount = c.measurements.length; clientsIndex[idx].lastDate = s[0]?.date||null; clientsIndex[idx].firstWeight = fS[0]?.weight||null; clientsIndex[idx].lastWeight = s[0]?.weight||null; await saveIndex(); }
-    closeModal('measurementModal'); renderClientDetail(cid);
+    await saveClientData(c, tId);
+    const idx = clientsIndex.findIndex(x => x.id === cid && x.trainerId === tId); if(idx>-1) { const s=[...c.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||'')); const fS=[...c.measurements].sort((a,b)=>(a.date||'').localeCompare(b.date||'')); clientsIndex[idx].measurementsCount = c.measurements.length; clientsIndex[idx].lastDate = s[0]?.date||null; clientsIndex[idx].firstWeight = fS[0]?.weight||null; clientsIndex[idx].lastWeight = s[0]?.weight||null; await saveIndex(tId); }
+    closeModal('measurementModal'); renderClientDetail(cid, tId);
   } catch(e) { showToast('Error', 'error'); } finally { b.disabled=false; b.innerHTML='Guardar medición'; setSync(false); }
 });
 
 /* ============ PORTAL LOGIC ============ */
 async function initPortal(trainerId, shortId) {
-  gitToken = GIT_TOKEN; currentUserId = trainerId;
+  gitToken = GIT_TOKEN; currentUserId = trainerId; // Override session for portal
   document.getElementById('loginScreen').classList.add('is-hidden');
   document.getElementById('app').classList.add('is-active');
   document.getElementById('topbarBrand').innerHTML = 'Gym<span>·</span>Brothers <span style="font-size:0.7rem; color:var(--color-text-secondary); margin-left:1rem;">Portal del Cliente</span>';
@@ -862,13 +931,14 @@ async function initPortal(trainerId, shortId) {
   document.getElementById('searchInput').style.display = 'none';
   
   setSync(true);
-  await getIndex();
+  await getIndex(); // Loads index for the specified trainerId
   const cInfo = clientsIndex.find(c => c.shortId === shortId);
   if(!cInfo) { document.getElementById('clientsGrid').innerHTML = '<div class="empty-state"><h3>Cliente no encontrado</h3></div>'; setSync(false); return; }
   currentClientId = cInfo.id;
+  currentClientTrainerId = cInfo.trainerId || trainerId;
   document.getElementById('dashboardView').style.display = 'none';
   document.getElementById('clientView').style.display = 'block';
-  await renderClientDetail(cInfo.id);
+  await renderClientDetail(cInfo.id, currentClientTrainerId);
   
   setTimeout(() => {
     document.querySelectorAll('#clientContent .client-actions').forEach(div => div.style.display = 'none');
