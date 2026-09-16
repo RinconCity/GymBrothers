@@ -118,7 +118,6 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 
 .chart-section { margin-bottom: 3rem; background: #fff; border: 1px solid var(--color-border); padding: 2rem; }
 .chart-container { position: relative; width: 100%; height: 200px; display: flex; }
-.chart-svg { width: 100%; height: 100%; overflow: visible; }
 .chart-empty { width: 100%; text-align: center; color: var(--color-text-secondary); font-size: 0.9rem; padding: 3rem 0; font-style: italic; }
 .chart-legend { display: flex; gap: 1.5rem; margin-top: 1rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; text-transform: uppercase; color: var(--color-text-secondary); }
 .chart-legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 0.4rem; }
@@ -447,10 +446,8 @@ async function apiDel(p, s, m) { const r=await fetch(`${API_BASE}${p}`, {method:
 /* ============ DATA & CACHE ============ */
 async function getIndex() {
   const cacheKey = `gb_idx_${currentUserId}`;
-  // 1. Load from cache instantly
   const cached = localStorage.getItem(cacheKey);
   if (cached) { try { clientsIndex = JSON.parse(cached); renderGrid(); } catch(e){} }
-  // 2. Fetch from GitHub
   setSync(true);
   try { const f = await apiGet(`clients/${currentUserId}/index.json`); if(f) { clientsIndex = JSON.parse(decB64(f.content)); localStorage.setItem(cacheKey, JSON.stringify(clientsIndex)); } else { clientsIndex = []; } }
   catch(e) { if(!cached) clientsIndex = []; }
@@ -569,7 +566,6 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
   if(!name) { showToast('El nombre es obligatorio', 'error'); return; }
   const b = document.getElementById('saveClientBtn'); b.disabled=true; b.innerHTML='<div class="spinner"></div>'; setSync(true);
   
-  // Collect routine
   const rRows = document.querySelectorAll('.routine-builder-row');
   routineData = [];
   rRows.forEach(r => { const inp=r.querySelectorAll('input, select'); if(inp[1].value) routineData.push({day:inp[0].value, ex:inp[1].value, sets:inp[2].value, reps:inp[3].value}); });
@@ -683,7 +679,7 @@ async function renderClientDetail(id) {
       <div class="client-actions">
         <button class="action-btn primary" id="addMBtn">+ Nueva medición</button>
         ${waHtml}
-        <button class="action-btn copy" id="copyLinkBtn">Copiar Link Cliente</button>
+        <button class="action-btn copy" id="sendProfileBtn">Enviar Perfil</button>
         <button class="action-btn" id="editClientBtn">Editar cliente</button>
         <button class="action-btn danger" id="delClientBtn">Eliminar</button>
       </div>
@@ -698,7 +694,19 @@ async function renderClientDetail(id) {
   
   document.getElementById('addMBtn').addEventListener('click', () => openMForm(c.id));
   document.getElementById('editClientBtn').addEventListener('click', () => openClientForm(c.id));
-  document.getElementById('copyLinkBtn').addEventListener('click', () => { navigator.clipboard.writeText(portalLink); showToast('Link copiado!'); });
+  document.getElementById('sendProfileBtn').addEventListener('click', () => { 
+    if (c.phone) {
+      const waMsg = `Aqui esta tu Perfil de Gym Brothers: ${portalLink}`;
+      const waLink = `https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(waMsg)}`;
+      window.open(waLink, '_blank');
+    } else {
+      navigator.clipboard.writeText(portalLink).then(() => {
+        showToast('Cliente sin teléfono. Link copiado!', 'error');
+      }).catch(() => {
+        showToast('Error al copiar link', 'error');
+      });
+    }
+  });
   document.getElementById('delClientBtn').addEventListener('click', () => showConfirm('Eliminar', `Eliminar a ${c.name}?`, async () => { setSync(true); try { await deleteClientData(c.id); clientsIndex = clientsIndex.filter(x => x.id !== c.id); await saveIndex(); showToast('Eliminado'); backToDash(); } catch(e){ showToast('Error','error'); } finally { setSync(false); } }));
   document.getElementById('photoInput').addEventListener('change', handlePhotoUpload);
   document.querySelectorAll('.delete-measurement').forEach(b => b.addEventListener('click', () => { const mid=b.dataset.mid; showConfirm('Eliminar', `Eliminar medición?`, async () => { setSync(true); try { c.measurements = c.measurements.filter(x => x.id !== mid); await saveClientData(c); const idx=clientsIndex.findIndex(x=>x.id===c.id); if(idx>-1) { clientsIndex[idx].measurementsCount=c.measurements.length; await saveIndex(); } showToast('Eliminada'); renderClientDetail(c.id); } catch(e){ showToast('Error','error'); } finally { setSync(false); } }); }));
@@ -747,16 +755,14 @@ async function initPortal(trainerId, shortId) {
   document.getElementById('searchInput').style.display = 'none';
   
   setSync(true);
-  await getIndex(); // Load trainer's index
+  await getIndex();
   const cInfo = clientsIndex.find(c => c.shortId === shortId);
   if(!cInfo) { document.getElementById('clientsGrid').innerHTML = '<div class="empty-state"><h3>Cliente no encontrado</h3></div>'; setSync(false); return; }
-  // Render detail directly
   currentClientId = cInfo.id;
   document.getElementById('dashboardView').style.display = 'none';
   document.getElementById('clientView').style.display = 'block';
   await renderClientDetail(cInfo.id);
   
-  // Hide edit buttons for portal
   setTimeout(() => {
     document.querySelectorAll('#clientContent .client-actions').forEach(div => div.style.display = 'none');
     document.querySelectorAll('#clientContent .delete-measurement').forEach(btn => btn.style.display = 'none');
@@ -765,7 +771,6 @@ async function initPortal(trainerId, shortId) {
   setSync(false);
 }
 
-/* ============ INIT ============ */
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.has('portal') && urlParams.has('id')) {
   initPortal(urlParams.get('portal'), urlParams.get('id'));
