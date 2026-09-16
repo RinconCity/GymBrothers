@@ -165,6 +165,38 @@ img { display: block; max-width: 100%; }
 .pc-delta.flat { color: var(--color-text-secondary); }
 .pc-delta.none { color: var(--color-accent); }
 
+/* ============ CHART (SVG) ============ */
+.chart-section { margin-bottom: 3rem; background: #fff; border: 1px solid var(--color-border); padding: 2rem; }
+.chart-container { position: relative; width: 100%; height: 200px; display: flex; }
+.chart-svg { width: 100%; height: 100%; overflow: visible; }
+.chart-y-labels { display: flex; flex-direction: column; justify-content: space-between; height: 100%; padding-right: 1rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--color-text-secondary); }
+.chart-empty { width: 100%; text-align: center; color: var(--color-text-secondary); font-size: 0.9rem; padding: 3rem 0; font-style: italic; }
+.chart-legend { display: flex; gap: 1.5rem; margin-top: 1rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; text-transform: uppercase; color: var(--color-text-secondary); }
+.chart-legend span { display: flex; align-items: center; gap: 0.4rem; }
+.chart-legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* ============ PROGRESS PHOTOS ============ */
+.photos-section { margin-bottom: 3rem; }
+.photos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+.photo-card { position: relative; aspect-ratio: 3/4; background: #ddd; overflow: hidden; cursor: pointer; border: 1px solid var(--color-border); }
+.photo-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+.photo-card:hover img { transform: scale(1.05); }
+.photo-card .photo-date { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(17,17,17,0.8); color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; padding: 0.4rem; text-align: center; }
+.compare-btn { margin-top: 1.5rem; }
+
+/* BEFORE/AFTER SLIDER */
+.ba-modal .modal { max-width: 700px; }
+.ba-container { position: relative; width: 100%; aspect-ratio: 1; overflow: hidden; background: #000; }
+.ba-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+.ba-before-wrap { position: absolute; top: 0; left: 0; width: 50%; height: 100%; overflow: hidden; z-index: 2; }
+.ba-before-wrap .ba-img { width: 700px; max-width: none; } /* Force width to match container width for object-fit */
+.ba-slider-range { position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; background: var(--color-accent); z-index: 3; pointer-events: none; }
+.ba-slider-range::after { content: '⟷'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--color-accent); color: #fff; padding: 0.5rem; border-radius: 50%; font-size: 1rem; }
+.ba-input-range { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; z-index: 4; margin: 0; }
+.ba-labels { display: flex; justify-content: space-between; margin-top: 1rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; text-transform: uppercase; color: var(--color-text-secondary); }
+.ba-select-group { display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: center; flex-wrap: wrap; }
+.ba-select-group select { flex: 1; padding: 0.6rem; border: 1px solid var(--color-border); background: #fff; font-family: inherit; min-width: 150px; }
+
 .measurements-section { margin-bottom: 3rem; }
 .measurements-wrap { background: #fff; border: 1px solid var(--color-border); overflow-x: auto; }
 .measurements-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 900px; }
@@ -189,7 +221,7 @@ img { display: block; max-width: 100%; }
 .modal-backdrop.is-open { display: flex; opacity: 1; }
 .modal { background: var(--color-bg-primary); width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--color-border-strong); transform: translateY(30px); transition: transform 400ms var(--ease-emphasis); }
 .modal-backdrop.is-open .modal { transform: translateY(0); }
-.modal-head { background: var(--color-bg-secondary); color: #fff; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; }
+.modal-head { background: var(--color-bg-secondary); color: #fff; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
 .modal-head h3 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.2rem; text-transform: uppercase; letter-spacing: -0.01em; }
 .modal-head h3 .accent { color: var(--color-accent); }
 .modal-close { color: #fff; font-size: 1.5rem; width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; transition: color 300ms var(--ease-precise); }
@@ -227,6 +259,10 @@ img { display: block; max-width: 100%; }
 .profile-photo-placeholder { width: 80px; height: 80px; border-radius: 50%; background: var(--color-bg-secondary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; font-weight: 900; }
 .profile-upload-btn { padding: 0.6rem 1rem; background: #fff; border: 1px solid var(--color-border-strong); cursor: pointer; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; text-transform: uppercase; }
 
+.photo-upload-preview { width: 100%; aspect-ratio: 3/4; background: #f0f0f0; border: 1px solid var(--color-border); margin-top: 0.5rem; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.photo-upload-preview img { width: 100%; height: 100%; object-fit: cover; }
+.photo-upload-preview .ph-text { color: var(--color-text-secondary); font-size: 0.8rem; font-family: 'IBM Plex Mono', monospace; }
+
 @media (max-width: 900px) {
   .topbar { padding: 1rem 1.25rem; flex-wrap: wrap; gap: 1rem; }
   .topbar-actions { gap: 0.5rem; }
@@ -243,6 +279,7 @@ img { display: block; max-width: 100%; }
   .modal-body { padding: 1.5rem; }
   .modal-foot { padding: 1rem 1.5rem; flex-direction: column-reverse; }
   .modal-foot .btn { width: 100%; }
+  .ba-before-wrap .ba-img { width: 100vw; max-width: 100%; } /* Fix for mobile */
 }
 @media (max-width: 600px) {
   .clients-grid { grid-template-columns: 1fr; }
@@ -392,6 +429,15 @@ img { display: block; max-width: 100%; }
       <input type="hidden" id="measurementId"><input type="hidden" id="measurementClientId">
       <div class="form-row full"><div class="form-field full"><label>Fecha de la medición *</label><input type="date" id="measurementDate"></div></div>
       <div class="form-divider">
+        <div class="form-divider-title">Foto de progreso (Opcional)</div>
+        <div class="form-field full">
+          <label class="profile-upload-btn" style="display:inline-block; margin-bottom:1rem;">Subir foto<input type="file" id="mPhotoInput" accept="image/*" style="display:none;"></label>
+          <div class="photo-upload-preview" id="mPhotoPreview">
+            <span class="ph-text">Sin foto seleccionada</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-divider">
         <div class="form-divider-title">Composición corporal</div>
         <div class="form-row">
           <div class="form-field"><label>Peso (kg)</label><input type="number" id="mWeight" placeholder="78.5" step="0.1"></div>
@@ -434,6 +480,37 @@ img { display: block; max-width: 100%; }
   </div>
 </div>
 
+<!-- BEFORE/AFTER MODAL -->
+<div class="modal-backdrop ba-modal" id="baModal">
+  <div class="modal">
+    <div class="modal-head"><h3>Antes y <span class="accent">Después</span></h3><button class="modal-close" data-close-modal="baModal">×</button></div>
+    <div class="modal-body">
+      <div class="ba-select-group">
+        <div class="form-field" style="flex:1;">
+          <label>Antes</label>
+          <select id="baBeforeSelect"></select>
+        </div>
+        <div class="form-field" style="flex:1;">
+          <label>Después</label>
+          <select id="baAfterSelect"></select>
+        </div>
+      </div>
+      <div class="ba-container" id="baContainer">
+        <img id="baAfterImg" class="ba-img" src="">
+        <div class="ba-before-wrap" id="baBeforeWrap">
+          <img id="baBeforeImg" class="ba-img" src="">
+        </div>
+        <div class="ba-slider-range" id="baSliderRange"></div>
+        <input type="range" class="ba-input-range" id="baRangeInput" min="0" max="100" value="50">
+      </div>
+      <div class="ba-labels">
+        <span id="baBeforeLabel">Antes</span>
+        <span id="baAfterLabel">Después</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRM MODAL -->
 <div class="modal-backdrop" id="confirmModal">
   <div class="modal confirm-dialog">
@@ -453,14 +530,13 @@ img { display: block; max-width: 100%; }
 
 <script>
 /* ============================================================
-   GYM BROTHERS · PANEL DEL ENTRENADOR (FASE 1)
+   GYM BROTHERS · PANEL DEL ENTRENADOR (FASE 2)
 ============================================================ */
 
 const GITHUB_OWNER = 'RinconCity';
 const GITHUB_REPO = 'GymBrothers';
 const API_BASE = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/`;
 
-// Token dividido en 2 partes para evitar bloqueo de GitHub
 const TOKEN_PARTE_1 = 'github_pat_11BNJ3MTA0TbvdFemUcNH4_1FvCl7';
 const TOKEN_PARTE_2 = 'VvaIdtEh5aHFbhCesSDEc4PILsHSvxn3dcbHf5X47QSFYeRh5pi3H';
 const GIT_TOKEN = TOKEN_PARTE_1 + TOKEN_PARTE_2; 
@@ -481,11 +557,10 @@ let clientsIndex = [];
 let currentClientId = null;
 let confirmCallback = null;
 let trainerProfile = { name: '', photo: '' };
+let currentMPhoto = ''; // Variable temporal para la foto de la medición
 
 /* ============ UTILS ============ */
-function generateShortId() {
-  return Math.floor(10000000 + Math.random() * 90000000).toString();
-}
+function generateShortId() { return Math.floor(10000000 + Math.random() * 90000000).toString(); }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 9); }
 function todayISO() { return new Date().toISOString().split('T')[0]; }
 function formatDate(iso) {
@@ -858,7 +933,7 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
     } else {
       clientData = {
         id: uid(),
-        shortId: generateShortId(), // <-- ID CORTO DE 8 CIFRAS
+        shortId: generateShortId(), 
         name: name,
         birthdate: document.getElementById('clientBirthdate').value,
         phone: document.getElementById('clientPhone').value.trim(),
@@ -943,6 +1018,33 @@ async function backToDashboard() {
 document.getElementById('clientBack').addEventListener('click', backToDashboard);
 document.getElementById('topbarBrand').addEventListener('click', () => { if (currentClientId) backToDashboard(); });
 
+function generateChartSVG(measurements, dataKey, color, isInverted = false) {
+  const validM = measurements.filter(m => m[dataKey] != null).sort((a,b) => new Date(a.date) - new Date(b.date));
+  if (validM.length < 2) return null;
+
+  const values = validM.map(m => parseFloat(m[dataKey]));
+  const maxV = Math.max(...values);
+  const minV = Math.min(...values);
+  const range = maxV - minV || 1;
+
+  const w = 100; const h = 40; const pad = 5;
+  const points = validM.map((m, i) => {
+    const x = (i / (validM.length - 1)) * (w - pad * 2) + pad;
+    const y = h - pad - ((parseFloat(m[dataKey]) - minV) / range) * (h - pad * 2);
+    return { x, y };
+  });
+
+  const pathData = points.map(p => `${p.x},${p.y}`).join(' ');
+  const circles = points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="1" fill="${color}"></circle>`).join('');
+
+  return `
+    <svg viewBox="0 0 100 40" preserveAspectRatio="none" class="chart-svg">
+      <polyline points="${pathData}" fill="none" stroke="${color}" stroke-width="0.8" />
+      ${circles}
+    </svg>
+  `;
+}
+
 async function renderClientDetail(clientId) {
   setSyncing(true);
   const c = await getClient(clientId);
@@ -965,7 +1067,7 @@ async function renderClientDetail(clientId) {
   const measurements = (c.measurements || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const latest = measurements[0] || null;
   const first = measurements[measurements.length - 1] || null;
-  const prev = measurements[1] || null; // Para calcular diferencia con la anterior
+  const prev = measurements[1] || null;
 
   function deltaCard(label, latestVal, firstVal, unit, isInverted = false) {
     if (latestVal == null) return `<div class="progress-card"><div class="pc-label">${label}</div><div class="pc-current">—</div><div class="pc-delta none">SIN DATOS</div></div>`;
@@ -987,6 +1089,48 @@ async function renderClientDetail(clientId) {
   const fatCard = deltaCard('% Grasa', latest?.bodyFat, first?.bodyFat, '%', true);
   const muscleCard = deltaCard('% Músculo', latest?.muscle, first?.muscle, '%');
   const waistCard = deltaCard('Cintura', latest?.waist, first?.waist, 'cm', true);
+
+  // Chart Generation
+  const ascMeasurements = measurements.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+  const weightChart = generateChartSVG(ascMeasurements, 'weight', '#FF2D8F');
+  const muscleChart = generateChartSVG(ascMeasurements, 'muscle', '#2A9D8F');
+  
+  let chartHtml = '<div class="chart-empty">Se necesitan al menos 2 mediciones para graficar.</div>';
+  if (weightChart || muscleChart) {
+    chartHtml = `
+      <div class="chart-container">
+        <div class="chart-y-labels">
+          <span>Máx</span>
+          <span>Min</span>
+        </div>
+        <div style="flex:1; position:relative;">
+          ${weightChart ? weightChart : ''}
+          ${muscleChart ? muscleChart.replace('<svg ', '<svg style="position:absolute; top:0; left:0; opacity:0.5;" ') : ''}
+        </div>
+      </div>
+      <div class="chart-legend">
+        ${weightChart ? '<span><div class="dot" style="background:#FF2D8F;"></div>Peso</span>' : ''}
+        ${muscleChart ? '<span><div class="dot" style="background:#2A9D8F;"></div>Músculo</span>' : ''}
+      </div>
+    `;
+  }
+
+  // Progress Photos Gallery
+  const progressPhotos = measurements.filter(m => m.photo);
+  let photosHtml = '<p class="notes-empty" style="text-align:center;">Todavía no hay fotos de progreso. Cargá una en la próxima medición.</p>';
+  if (progressPhotos.length > 0) {
+    photosHtml = `
+      <div class="photos-grid">
+        ${progressPhotos.map(m => `
+          <div class="photo-card" data-photo="${m.photo}" data-date="${formatDate(m.date)}">
+            <img src="${m.photo}" alt="Foto ${formatDate(m.date)}">
+            <div class="photo-date">${formatDate(m.date)} - ${m.weight || '—'}kg</div>
+          </div>
+        `).join('')}
+      </div>
+      ${progressPhotos.length >= 2 ? `<button class="btn btn-primary compare-btn" id="openCompareBtn">Comparar Antes y Después</button>` : ''}
+    `;
+  }
 
   // WhatsApp Button Logic
   let waBtnHtml = '';
@@ -1065,6 +1209,17 @@ async function renderClientDetail(clientId) {
       <div class="section-head"><div><div class="label">Resumen de avance</div><h2>Última vs <span class="accent">primera</span> medición</h2></div></div>
       <div class="progress-cards">${weightCard}${fatCard}${muscleCard}${waistCard}</div>
     </section>
+    
+    <section class="chart-section">
+      <div class="section-head"><div><div class="label">Evolución temporal</div><h2>Gráfico de <span class="accent">progreso</span></h2></div></div>
+      ${chartHtml}
+    </section>
+
+    <section class="photos-section">
+      <div class="section-head"><div><div class="label">Galería visual</div><h2>Fotos de <span class="accent">progreso</span></h2></div></div>
+      ${photosHtml}
+    </section>
+
     <section class="measurements-section">
       <div class="section-head"><div><div class="label">Historial completo</div><h2>Mediciones <span class="accent">registradas</span></h2></div></div>
       ${tableHtml}
@@ -1128,6 +1283,46 @@ async function renderClientDetail(clientId) {
       });
     });
   });
+
+  // Compare logic
+  const openCompareBtn = document.getElementById('openCompareBtn');
+  if (openCompareBtn) {
+    openCompareBtn.addEventListener('click', () => {
+      const beforeSelect = document.getElementById('baBeforeSelect');
+      const afterSelect = document.getElementById('baAfterSelect');
+      
+      beforeSelect.innerHTML = progressPhotos.map((m, i) => `<option value="${i}">${formatDate(m.date)}</option>`).join('');
+      afterSelect.innerHTML = progressPhotos.map((m, i) => `<option value="${i}">${formatDate(m.date)}</option>`).join('');
+      
+      beforeSelect.value = 0;
+      afterSelect.value = progressPhotos.length - 1;
+
+      const updateBa = () => {
+        const bIdx = parseInt(beforeSelect.value);
+        const aIdx = parseInt(afterSelect.value);
+        document.getElementById('baBeforeImg').src = progressPhotos[bIdx].photo;
+        document.getElementById('baAfterImg').src = progressPhotos[aIdx].photo;
+        document.getElementById('baBeforeLabel').textContent = `Antes: ${formatDate(progressPhotos[bIdx].date)}`;
+        document.getElementById('baAfterLabel').textContent = `Después: ${formatDate(progressPhotos[aIdx].date)}`;
+      };
+      updateBa();
+      beforeSelect.onchange = updateBa;
+      afterSelect.onchange = updateBa;
+
+      const rangeInput = document.getElementById('baRangeInput');
+      const beforeWrap = document.getElementById('baBeforeWrap');
+      const sliderRange = document.getElementById('baSliderRange');
+      rangeInput.oninput = () => {
+        const val = rangeInput.value;
+        beforeWrap.style.width = val + '%';
+        sliderRange.style.left = val + '%';
+      };
+      // Trigger initial position
+      rangeInput.oninput();
+
+      openModal('baModal');
+    });
+  }
 }
 
 /* ============ PHOTO UPLOAD (CLIENT) ============ */
@@ -1181,6 +1376,10 @@ function openMeasurementForm(clientId, measurementId = null) {
 
   ['measurementDate','mWeight','mBodyFat','mMuscle','mChest','mWaist','mHip','mNeck','mArmL','mArmR','mThighL','mThighR','mCalfL','mCalfR','mNotes']
     .forEach(id => document.getElementById(id).value = '');
+  
+  currentMPhoto = '';
+  document.getElementById('mPhotoInput').value = '';
+  document.getElementById('mPhotoPreview').innerHTML = '<span class="ph-text">Sin foto seleccionada</span>';
 
   (async () => {
     const fullClient = await getClient(clientId);
@@ -1203,6 +1402,11 @@ function openMeasurementForm(clientId, measurementId = null) {
       document.getElementById('mCalfL').value = m.calfL || '';
       document.getElementById('mCalfR').value = m.calfR || '';
       document.getElementById('mNotes').value = m.notes || '';
+      
+      if (m.photo) {
+        currentMPhoto = m.photo;
+        document.getElementById('mPhotoPreview').innerHTML = `<img src="${m.photo}">`;
+      }
     } else {
       title.innerHTML = 'Nueva <span class="accent">medición</span>';
       document.getElementById('measurementDate').value = todayISO();
@@ -1229,6 +1433,29 @@ function openMeasurementForm(clientId, measurementId = null) {
 
   openModal('measurementModal');
 }
+
+// Handle Measurement Photo Input
+document.getElementById('mPhotoInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxDim = 600;
+      let { width, height } = img;
+      if (width > height && width > maxDim) { height = (height * maxDim) / width; width = maxDim; } 
+      else if (height > maxDim) { width = (width * maxDim) / height; height = maxDim; }
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      currentMPhoto = canvas.toDataURL('image/jpeg', 0.7); // Slightly more compressed for measurements
+      document.getElementById('mPhotoPreview').innerHTML = `<img src="${currentMPhoto}">`;
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+});
 
 function updateIMCPreview() {
   const weight = parseFloat(document.getElementById('mWeight').value);
@@ -1269,6 +1496,7 @@ document.getElementById('saveMeasurementBtn').addEventListener('click', async ()
       thighR: document.getElementById('mThighR').value ? parseFloat(document.getElementById('mThighR').value) : null,
       calfL: document.getElementById('mCalfL').value ? parseFloat(document.getElementById('mCalfL').value) : null,
       calfR: document.getElementById('mCalfR').value ? parseFloat(document.getElementById('mCalfR').value) : null,
+      photo: currentMPhoto, // Save measurement photo
       notes: document.getElementById('mNotes').value.trim()
     };
 
