@@ -295,7 +295,7 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
       <div class="form-divider">
         <div class="form-divider-title">Pagos y Control</div>
         <div class="form-row">
-          <div class="form-field"><label>Fecha de próximo pago</label><input type="date" id="clientPaymentDate"></div>
+          <div class="form-field"><label>Día de pago (1-31)</label><input type="number" id="clientPaymentDay" min="1" max="31" placeholder="Ej: 10"></div>
           <div class="form-field"><label>Estado de cuota</label><select id="clientPaymentStatus"><option value="Al día">Al día</option><option value="Pendiente">Pendiente</option><option value="Vencido">Vencido</option></select></div>
         </div>
       </div>
@@ -501,10 +501,23 @@ function renderGrid() {
   if(f.length===0) { grid.innerHTML = `<div class="empty-state"><h3>${clientsIndex.length===0?'Todavía no hay clientes':'Sin resultados'}</h3></div>`; return; }
   
   const now = new Date();
+  const today = now.getDate();
+  
   grid.innerHTML = f.map(c => {
     let pay = '';
-    if(c.paymentStatus === 'Vencido') pay = '<div class="payment-alert">VENCIDA</div>';
-    else if(c.paymentDate) { const pD=new Date(c.paymentDate+'T00:00:00'); const dDiff=Math.ceil((pD-now)/(1000*60*60*24)); if(dDiff<=3&&dDiff>=0) pay=`<div class="payment-alert" style="background:var(--color-success);">VENCE ${dDiff}D</div>`; }
+    if(c.paymentStatus === 'Vencido') {
+      pay = '<div class="payment-alert">VENCIDA</div>';
+    } else if(c.paymentDay) {
+      const pDay = parseInt(c.paymentDay);
+      if(pDay >= today) {
+        const diff = pDay - today;
+        if(diff <= 3) pay = `<div class="payment-alert" style="background:var(--color-success);">VENCE ${diff}D</div>`;
+      } else {
+        // El día de pago ya pasó este mes y no lo marcaste como "Al día" o "Vencido" aún. 
+        // Pero si lo dejaste en Pendiente, te lo marca en rojo.
+        if(c.paymentStatus === 'Pendiente') pay = '<div class="payment-alert">VENCIDA</div>';
+      }
+    }
     const d = c.firstWeight&&c.lastWeight ? (c.lastWeight-c.firstWeight) : null;
     let pHtml = '<span>SIN MED</span>'; if(c.measurementsCount===1) pHtml='<span>1 MED</span>'; else if(d!=null) { if(d>0) pHtml=`<span style="color:var(--color-success)">▲ ${d.toFixed(1)}kg</span>`; else if(d<0) pHtml=`<span style="color:var(--color-danger)">▼ ${Math.abs(d).toFixed(1)}kg</span>`; else pHtml='<span>—</span>'; }
     const ph = c.photo ? `<img src="${c.photo}">` : `<div class="placeholder">${getInit(c.name)}</div>`;
@@ -557,17 +570,32 @@ function markBroadcastSent(id) {
 
 /* ============ PAYMENTS ============ */
 document.getElementById('payBtn').addEventListener('click', () => {
-  const now = new Date(); const inAWeek = new Date(now.getTime() + 7*24*60*60*1000);
-  const dues = clientsIndex.filter(c => c.paymentDate && new Date(c.paymentDate+'T00:00:00') >= now && new Date(c.paymentDate+'T00:00:00') <= inAWeek);
+  const now = new Date(); 
+  const today = now.getDate();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  
   const overdue = clientsIndex.filter(c => c.paymentStatus === 'Vencido');
-  const all = [...overdue, ...dues];
+  const pendingLate = clientsIndex.filter(c => c.paymentStatus === 'Pendiente' && c.paymentDay && parseInt(c.paymentDay) < today);
+  
+  const dues = clientsIndex.filter(c => {
+    if(!c.paymentDay) return false;
+    const pDay = parseInt(c.paymentDay);
+    let diff = pDay - today;
+    if (diff < 0) diff = (daysInMonth - today) + pDay; // Pasa al otro mes
+    return diff >= 0 && diff <= 7; // Vence en los próximos 7 días
+  });
+  
+  const all = [...overdue, ...pendingLate, ...dues];
   const body = document.getElementById('payModalBody');
-  if(all.length === 0) { body.innerHTML = '<p style="text-align:center; color:var(--color-text-secondary);">No hay vencimientos en los próximos 7 días. ¡Todo al día!</p>'; }
-  else {
+  
+  if(all.length === 0) { 
+    body.innerHTML = '<p style="text-align:center; color:var(--color-text-secondary);">No hay vencimientos en los próximos 7 días. ¡Todo al día!</p>'; 
+  } else {
     body.innerHTML = all.map(c => {
-      const waMsg = `Hola ${c.name}! Te recordamos que tu cuota del gym vence el ${fmtDate(c.paymentDate)}. ¡Cualquier cosa avisanos! 💪`;
+      const waMsg = `Hola ${c.name}! Te recordamos que tu cuota del gym vence el día ${c.paymentDay} de cada mes. ¡Cualquier cosa avisanos! 💪`;
       const waLink = c.phone ? `<a href="https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(waMsg)}" target="_blank" class="btn btn-primary" style="padding:0.5rem 1rem; font-size:0.7rem;">WhatsApp</a>` : '<span style="font-size:0.7rem; color:var(--color-text-secondary);">Sin teléfono</span>';
-      return `<div class="pay-list-item"><div class="info"><h4>${escHtml(c.name)}</h4><p>Vto: ${fmtDate(c.paymentDate)} ${c.paymentStatus==='Vencido'?'(VENCIDA)':''}</p></div>${waLink}</div>`;
+      const statusText = c.paymentStatus === 'Vencido' ? '(VENCIDA)' : (c.paymentStatus === 'Pendiente' ? '(ATRASADA)' : '');
+      return `<div class="pay-list-item"><div class="info"><h4>${escHtml(c.name)}</h4><p>Paga los días ${c.paymentDay} ${statusText}</p></div>${waLink}</div>`;
     }).join('');
   }
   openModal('payModal');
@@ -591,7 +619,7 @@ function openClientForm(id=null) {
     document.getElementById('clientGoal').value = c.goal || '';
     document.getElementById('clientHeight').value = c.height || '';
     document.getElementById('clientStartDate').value = c.startDate || '';
-    document.getElementById('clientPaymentDate').value = c.paymentDate || '';
+    document.getElementById('clientPaymentDay').value = c.paymentDay || '';
     document.getElementById('clientPaymentStatus').value = c.paymentStatus || 'Al día';
     document.getElementById('clientDiet').value = c.diet || '';
     document.getElementById('clientNotes').value = c.notes || '';
@@ -600,7 +628,7 @@ function openClientForm(id=null) {
     document.getElementById('clientModalTitle').innerHTML = 'Nuevo <span class="accent">cliente</span>';
     ['clientName','clientBirthdate','clientPhone','clientEmail','clientGoal','clientHeight','clientDiet','clientNotes'].forEach(i => document.getElementById(i).value = '');
     document.getElementById('clientStartDate').value = todayISO();
-    document.getElementById('clientPaymentDate').value = '';
+    document.getElementById('clientPaymentDay').value = '';
     document.getElementById('clientPaymentStatus').value = 'Al día';
   }
   openModal('clientModal');
@@ -641,7 +669,7 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
     cd.goal = document.getElementById('clientGoal').value.trim();
     cd.height = document.getElementById('clientHeight').value ? parseFloat(document.getElementById('clientHeight').value) : null;
     cd.startDate = document.getElementById('clientStartDate').value || todayISO();
-    cd.paymentDate = document.getElementById('clientPaymentDate').value;
+    cd.paymentDay = document.getElementById('clientPaymentDay').value;
     cd.paymentStatus = document.getElementById('clientPaymentStatus').value;
     cd.routine = routineData;
     cd.diet = document.getElementById('clientDiet').value.trim();
@@ -649,7 +677,7 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
 
     await saveClientData(cd);
     const idx = clientsIndex.findIndex(c => c.id === cd.id);
-    const entry = { id:cd.id, shortId:cd.shortId, name:cd.name, goal:cd.goal, photo:cd.photo, height:cd.height, phone:cd.phone, email:cd.email, startDate:cd.startDate, paymentDate:cd.paymentDate, paymentStatus:cd.paymentStatus, diet:cd.diet, notes:cd.notes, measurementsCount:cd.measurements?cd.measurements.length:0, lastDate:cd.measurements&&cd.measurements.length>0?[...cd.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0].date:null, firstWeight:cd.measurements&&cd.measurements.length>0?[...cd.measurements].sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0].weight:null, lastWeight:cd.measurements&&cd.measurements.length>0?[...cd.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0].weight:null };
+    const entry = { id:cd.id, shortId:cd.shortId, name:cd.name, goal:cd.goal, photo:cd.photo, height:cd.height, phone:cd.phone, email:cd.email, startDate:cd.startDate, paymentDay:cd.paymentDay, paymentStatus:cd.paymentStatus, diet:cd.diet, notes:cd.notes, measurementsCount:cd.measurements?cd.measurements.length:0, lastDate:cd.measurements&&cd.measurements.length>0?[...cd.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0].date:null, firstWeight:cd.measurements&&cd.measurements.length>0?[...cd.measurements].sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0].weight:null, lastWeight:cd.measurements&&cd.measurements.length>0?[...cd.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0].weight:null };
     if(idx>-1) clientsIndex[idx]=entry; else clientsIndex.push(entry);
     await saveIndex();
     showToast(id?'Cliente actualizado':'Cliente agregado');
@@ -732,7 +760,7 @@ async function renderClientDetail(id) {
         <div class="client-info-grid">
           <div class="info-cell"><div class="lbl">Altura</div><div class="val">${c.height?c.height+'cm':'—'}</div></div>
           <div class="info-cell"><div class="lbl">Inicio</div><div class="val">${fmtDate(c.startDate)}</div></div>
-          <div class="info-cell"><div class="lbl">Vto. Cuota</div><div class="val">${fmtDate(c.paymentDate)}</div></div>
+          <div class="info-cell"><div class="lbl">Día de Pago</div><div class="val">${c.paymentDay ? 'Los ' + c.paymentDay : '—'}</div></div>
           <div class="info-cell"><div class="lbl">Estado</div><div class="val">${c.paymentStatus||'Al día'}</div></div>
         </div>
       </div>
