@@ -19,6 +19,7 @@
   --color-border-strong: rgba(17,17,17,0.65);
   --color-danger:        #E63946;
   --color-success:       #2A9D8F;
+  --color-wa:            #25D366;
   --ease-quiet:    cubic-bezier(.22, 1, .36, 1);
   --ease-precise:  cubic-bezier(.4, 0, .2, 1);
   --ease-emphasis: cubic-bezier(.16, 1, .3, 1);
@@ -40,110 +41,42 @@ input, textarea, select { font-family: inherit; }
 img { display: block; max-width: 100%; }
 
 /* ============ LOGIN ============ */
-.login-screen {
-  position: fixed; inset: 0;
-  background: var(--color-bg-secondary);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000; padding: 2rem;
-}
+.login-screen { position: fixed; inset: 0; background: var(--color-bg-secondary); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 2rem; }
 .login-screen.is-hidden { display: none; }
-.login-bg-grid {
-  position: absolute; inset: 0;
-  background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size: 40px 40px; pointer-events: none;
-}
-.login-bg-grid::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%;
-  background: radial-gradient(circle at 50% 100%, rgba(255,45,143,0.15), transparent 60%);
-  pointer-events: none;
-}
-.login-card {
-  position: relative; z-index: 2;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.1);
-  padding: 3rem 2.5rem; width: 100%; max-width: 420px;
-  backdrop-filter: blur(8px);
-}
-.login-brand {
-  font-family: 'Montserrat', sans-serif; font-weight: 900;
-  font-size: 1.8rem; color: #fff; text-transform: uppercase;
-  letter-spacing: -0.02em; margin-bottom: 0.5rem;
-}
+.login-bg-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; }
+.login-bg-grid::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%; background: radial-gradient(circle at 50% 100%, rgba(255,45,143,0.15), transparent 60%); pointer-events: none; }
+.login-card { position: relative; z-index: 2; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 3rem 2.5rem; width: 100%; max-width: 420px; backdrop-filter: blur(8px); }
+.login-brand { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.8rem; color: #fff; text-transform: uppercase; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
 .login-brand span { color: var(--color-accent); }
-.login-sub {
-  font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
-  text-transform: uppercase; letter-spacing: 0.18em;
-  color: rgba(255,255,255,0.5); margin-bottom: 2.5rem;
-}
-.login-label {
-  font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem;
-  text-transform: uppercase; letter-spacing: 0.15em;
-  color: rgba(255,255,255,0.6); margin-bottom: 0.6rem; display: block;
-}
-.login-input {
-  width: 100%; background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.15); color: #fff;
-  padding: 1rem 1.2rem; font-size: 1rem; outline: none;
-  transition: border-color 300ms var(--ease-precise); margin-bottom: 1.5rem;
-}
+.login-sub { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.18em; color: rgba(255,255,255,0.5); margin-bottom: 2.5rem; }
+.login-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.6); margin-bottom: 0.6rem; display: block; }
+.login-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 1rem 1.2rem; font-size: 1rem; outline: none; transition: border-color 300ms var(--ease-precise); margin-bottom: 1.5rem; }
 .login-input:focus { border-color: var(--color-accent); }
 .login-input::placeholder { color: rgba(255,255,255,0.3); }
-.login-btn {
-  width: 100%; padding: 1.1rem; background: var(--color-accent);
-  color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;
-  text-transform: uppercase; letter-spacing: 0.18em; font-weight: 500;
-  transition: background 300ms var(--ease-precise); display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-}
+.login-btn { width: 100%; padding: 1.1rem; background: var(--color-accent); color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.18em; font-weight: 500; transition: background 300ms var(--ease-precise); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
 .login-btn:hover { background: #ff4f9f; }
 .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.login-error {
-  color: var(--color-accent); font-size: 0.82rem;
-  margin-top: -0.5rem; margin-bottom: 1.5rem;
-  font-family: 'IBM Plex Mono', monospace; min-height: 1rem;
-}
-.spinner {
-  width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
-}
+.login-error { color: var(--color-accent); font-size: 0.82rem; margin-top: -0.5rem; margin-bottom: 1.5rem; font-family: 'IBM Plex Mono', monospace; min-height: 1rem; }
+.spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ============ APP SHELL ============ */
 .app { display: none; min-height: 100vh; }
 .app.is-active { display: block; }
-.topbar {
-  position: sticky; top: 0; z-index: 50;
-  background: var(--color-bg-secondary); color: #fff;
-  padding: 1.2rem 2rem; display: flex; align-items: center; justify-content: space-between;
-  gap: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-.topbar-brand {
-  font-family: 'Montserrat', sans-serif; font-weight: 900;
-  font-size: 1.1rem; text-transform: uppercase; letter-spacing: -0.02em;
-  cursor: pointer; display: flex; align-items: center; gap: 0.5rem;
-}
+.topbar { position: sticky; top: 0; z-index: 50; background: var(--color-bg-secondary); color: #fff; padding: 1.2rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.topbar-brand { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.1rem; text-transform: uppercase; letter-spacing: -0.02em; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
 .topbar-brand span { color: var(--color-accent); }
-.topbar-brand .back-arrow {
-  font-size: 0.9rem; opacity: 0; width: 0; overflow: hidden;
-  transition: opacity 300ms var(--ease-precise), width 300ms var(--ease-precise);
-}
+.topbar-brand .back-arrow { font-size: 0.9rem; opacity: 0; width: 0; overflow: hidden; transition: opacity 300ms var(--ease-precise), width 300ms var(--ease-precise); }
 .topbar-brand.has-back .back-arrow { opacity: 1; width: 1.2rem; }
 .topbar-actions { display: flex; align-items: center; gap: 1rem; }
-.user-badge {
-  font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem;
-  text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-accent);
-  border: 1px solid rgba(255,45,143,0.4); padding: 0.4rem 0.8rem;
-}
-.sync-indicator {
-  font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: rgba(255,255,255,0.7);
-  display: flex; align-items: center; gap: 0.5rem; opacity: 0; transition: opacity 0.3s;
-}
+.user-badge { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; border: 1px solid rgba(255,45,143,0.4); padding: 0.3rem 0.8rem 0.3rem 0.3rem; transition: border-color 0.3s; }
+.user-badge:hover { border-color: var(--color-accent); }
+.user-badge img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+.user-badge .placeholder-sm { width: 28px; height: 28px; border-radius: 50%; background: var(--color-accent); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: #111; }
+.user-badge span { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: #fff; }
+.sync-indicator { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 0.5rem; opacity: 0; transition: opacity 0.3s; }
 .sync-indicator.is-syncing { opacity: 1; }
-.topbar-btn {
-  font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
-  text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.7);
-  padding: 0.6rem 0.9rem; border: 1px solid rgba(255,255,255,0.15);
-  transition: all 300ms var(--ease-precise);
-}
+.topbar-btn { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.7); padding: 0.6rem 0.9rem; border: 1px solid rgba(255,255,255,0.15); transition: all 300ms var(--ease-precise); }
 .topbar-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
 .topbar-btn.is-danger:hover { border-color: var(--color-danger); color: var(--color-danger); }
 
@@ -172,6 +105,7 @@ img { display: block; max-width: 100%; }
 .client-card-photo { width: 100%; aspect-ratio: 1; background: #f0f0f0; margin-bottom: 1.25rem; overflow: hidden; position: relative; }
 .client-card-photo img { width: 100%; height: 100%; object-fit: cover; }
 .client-card-photo .placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--color-bg-secondary); color: rgba(255,255,255,0.3); font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 3rem; }
+.client-card-id { position: absolute; top: 0.5rem; left: 0.5rem; background: rgba(17,17,17,0.8); color: var(--color-accent); font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; padding: 0.2rem 0.4rem; letter-spacing: 0.05em; }
 .client-card-name { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.15rem; text-transform: uppercase; letter-spacing: -0.01em; margin-bottom: 0.3rem; }
 .client-card-goal { font-size: 0.82rem; color: var(--color-text-secondary); margin-bottom: 1rem; line-height: 1.4; min-height: 2.4em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .client-card-meta { display: flex; justify-content: space-between; padding-top: 0.85rem; border-top: 1px solid var(--color-border); font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-secondary); }
@@ -180,6 +114,7 @@ img { display: block; max-width: 100%; }
 .progress-indicator.down { color: var(--color-danger); }
 .progress-indicator.flat { color: var(--color-text-secondary); }
 .progress-indicator.new { color: var(--color-accent); }
+.payment-alert { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--color-danger); color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; padding: 0.3rem 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
 
 .empty-state { grid-column: 1 / -1; text-align: center; padding: 5rem 2rem; border: 1px dashed var(--color-border-strong); background: rgba(255,255,255,0.5); }
 .empty-state h3 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.5rem; text-transform: uppercase; margin-bottom: 0.5rem; }
@@ -203,11 +138,13 @@ img { display: block; max-width: 100%; }
 .info-cell .lbl { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-text-secondary); margin-bottom: 0.25rem; }
 .info-cell .val { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem; }
 .client-actions { display: flex; flex-direction: column; gap: 0.5rem; }
-.action-btn { padding: 0.7rem 1.1rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; border: 1px solid var(--color-border-strong); background: #fff; transition: all 300ms var(--ease-precise); text-align: center; }
+.action-btn { padding: 0.7rem 1.1rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; border: 1px solid var(--color-border-strong); background: #fff; transition: all 300ms var(--ease-precise); text-align: center; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
 .action-btn:hover { background: var(--color-bg-secondary); color: #fff; border-color: var(--color-bg-secondary); }
 .action-btn.primary { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
 .action-btn.primary:hover { background: var(--color-bg-secondary); border-color: var(--color-bg-secondary); }
 .action-btn.danger:hover { background: var(--color-danger); color: #fff; border-color: var(--color-danger); }
+.action-btn.wa { background: var(--color-wa); color: #fff; border-color: var(--color-wa); }
+.action-btn.wa:hover { background: #128C7E; border-color: #128C7E; }
 
 .section-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; }
 .section-head .label { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--color-text-secondary); display: flex; align-items: center; gap: 0.75rem; }
@@ -285,16 +222,15 @@ img { display: block; max-width: 100%; }
 .toast.error { border-left-color: var(--color-danger); }
 .toast.success { border-left-color: var(--color-success); }
 
-.confirm-dialog { background: var(--color-bg-primary); max-width: 420px; border: 1px solid var(--color-border-strong); }
-.confirm-dialog .modal-body { text-align: center; padding: 2.5rem 2rem; }
-.confirm-dialog h4 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.3rem; text-transform: uppercase; margin-bottom: 0.75rem; }
-.confirm-dialog p { font-size: 0.9rem; color: var(--color-text-secondary); line-height: 1.5; margin-bottom: 1.5rem; }
-.confirm-actions { display: flex; gap: 0.75rem; justify-content: center; }
+.profile-photo-upload { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; }
+.profile-photo-preview { width: 80px; height: 80px; border-radius: 50%; background: #ddd; overflow: hidden; object-fit: cover; }
+.profile-photo-placeholder { width: 80px; height: 80px; border-radius: 50%; background: var(--color-bg-secondary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; font-weight: 900; }
+.profile-upload-btn { padding: 0.6rem 1rem; background: #fff; border: 1px solid var(--color-border-strong); cursor: pointer; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; text-transform: uppercase; }
 
 @media (max-width: 900px) {
   .topbar { padding: 1rem 1.25rem; flex-wrap: wrap; gap: 1rem; }
   .topbar-actions { gap: 0.5rem; }
-  .user-badge, .topbar-btn { padding: 0.5rem 0.65rem; font-size: 0.6rem; }
+  .user-badge span, .topbar-btn { padding: 0.5rem 0.65rem; font-size: 0.6rem; }
   .dashboard { padding: 2rem 1.25rem 4rem; }
   .dashboard-stats { gap: 1.5rem; }
   .client-header { grid-template-columns: 1fr; gap: 1.5rem; padding: 1.5rem; }
@@ -341,7 +277,10 @@ img { display: block; max-width: 100%; }
       Gym<span>·</span>Brothers
     </div>
     <div class="topbar-actions">
-      <div class="user-badge" id="userBadge">Entrenador</div>
+      <div class="user-badge" id="userBadge">
+        <div class="placeholder-sm" id="userBadgePhoto">E</div>
+        <span id="userBadgeName">Entrenador</span>
+      </div>
       <div class="sync-indicator" id="syncIndicator"><div class="spinner"></div> Sincronizando...</div>
       <button class="topbar-btn is-danger" id="logoutBtn">Salir</button>
     </div>
@@ -359,7 +298,7 @@ img { display: block; max-width: 100%; }
       </div>
     </div>
     <div class="dashboard-toolbar">
-      <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nombre...">
+      <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nombre o ID...">
       <button class="add-client-btn" id="addClientBtn">Nuevo cliente</button>
     </div>
     <div class="clients-grid" id="clientsGrid"></div>
@@ -369,6 +308,31 @@ img { display: block; max-width: 100%; }
     <a class="client-back" id="clientBack">← Volver a clientes</a>
     <div id="clientContent"></div>
   </main>
+</div>
+
+<!-- TRAINER MODAL -->
+<div class="modal-backdrop" id="trainerModal">
+  <div class="modal">
+    <div class="modal-head"><h3>Mi <span class="accent">Perfil</span></h3><button class="modal-close" data-close-modal="trainerModal">×</button></div>
+    <div class="modal-body">
+      <div class="profile-photo-upload">
+        <div id="trainerPhotoPreview" class="profile-photo-placeholder">E</div>
+        <div>
+          <label class="profile-upload-btn">Cambiar foto<input type="file" id="trainerPhotoInput" accept="image/*" style="display:none;"></label>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-field full">
+          <label>Nombre visible</label>
+          <input type="text" id="trainerNameInput" placeholder="Tu nombre o apodo">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" data-close-modal="trainerModal">Cancelar</button>
+      <button class="btn btn-primary" id="saveTrainerBtn">Guardar perfil</button>
+    </div>
+  </div>
 </div>
 
 <!-- CLIENT MODAL -->
@@ -382,15 +346,36 @@ img { display: block; max-width: 100%; }
         <div class="form-field"><label>Fecha de nacimiento</label><input type="date" id="clientBirthdate"></div>
       </div>
       <div class="form-row">
-        <div class="form-field"><label>Teléfono</label><input type="tel" id="clientPhone" placeholder="+54 11 5555-1234"></div>
+        <div class="form-field"><label>Teléfono (con código de país)</label><input type="tel" id="clientPhone" placeholder="Ej: 5491112345678"></div>
         <div class="form-field"><label>Email</label><input type="email" id="clientEmail" placeholder="cliente@mail.com"></div>
       </div>
-      <div class="form-row full"><div class="form-field full"><label>Objetivo principal</label><input type="text" id="clientGoal" placeholder="Ej: Bajar 10 kg en 4 meses / Hipertrofia / Powerlifting"></div></div>
+      <div class="form-row full"><div class="form-field full"><label>Objetivo principal</label><input type="text" id="clientGoal" placeholder="Ej: Bajar 10 kg / Hipertrofia"></div></div>
       <div class="form-row">
         <div class="form-field"><label>Altura (cm)</label><input type="number" id="clientHeight" placeholder="175" min="100" max="250"></div>
         <div class="form-field"><label>Fecha de inicio</label><input type="date" id="clientStartDate"></div>
       </div>
-      <div class="form-row full"><div class="form-field full"><label>Notas privadas</label><textarea id="clientNotes" placeholder="Lesiones, condiciones médicas, observaciones..."></textarea></div></div>
+      
+      <div class="form-divider">
+        <div class="form-divider-title">Pagos y Control</div>
+        <div class="form-row">
+          <div class="form-field"><label>Fecha de próximo pago</label><input type="date" id="clientPaymentDate"></div>
+          <div class="form-field"><label>Estado de cuota</label>
+            <select id="clientPaymentStatus">
+              <option value="Al día">Al día</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Vencido">Vencido</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-divider">
+        <div class="form-divider-title">Planes y Rutinas</div>
+        <div class="form-row full"><div class="form-field full"><label>Rutina de Entrenamiento</label><textarea id="clientRoutine" placeholder="Día 1: Pecho y Tríceps..."></textarea></div></div>
+        <div class="form-row full"><div class="form-field full"><label>Plan Nutricional / Dieta</label><textarea id="clientDiet" placeholder="Desayuno: Avena con frutas..."></textarea></div></div>
+      </div>
+
+      <div class="form-row full"><div class="form-field full"><label>Notas privadas</label><textarea id="clientNotes" placeholder="Lesiones, condiciones médicas..."></textarea></div></div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-secondary" data-close-modal="clientModal">Cancelar</button>
@@ -440,7 +425,7 @@ img { display: block; max-width: 100%; }
           <div class="form-field"><label>Pantorrilla derecha</label><input type="number" id="mCalfR" placeholder="38" step="0.1"></div>
         </div>
       </div>
-      <div class="form-row full"><div class="form-field full"><label>Notas de la sesión</label><textarea id="mNotes" placeholder="Observaciones, cambios en rutina..."></textarea></div></div>
+      <div class="form-row full"><div class="form-field full"><label>Notas de la sesión</label><textarea id="mNotes" placeholder="Observaciones, cambios..."></textarea></div></div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-secondary" data-close-modal="measurementModal">Cancelar</button>
@@ -468,44 +453,39 @@ img { display: block; max-width: 100%; }
 
 <script>
 /* ============================================================
-   GYM BROTHERS · PANEL DEL ENTRENADOR
-   Backend: GitHub API (Repository: RinconCity/GymBrothers)
+   GYM BROTHERS · PANEL DEL ENTRENADOR (FASE 1)
 ============================================================ */
 
 const GITHUB_OWNER = 'RinconCity';
 const GITHUB_REPO = 'GymBrothers';
 const API_BASE = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/`;
 
-// =====================================================================
-// CONFIGURACIÓN DE TOKEN Y USUARIOS
-// =====================================================================
-// Para evitar que GitHub bloquee el token por seguridad, lo dividimos en 2 partes.
+// Token dividido en 2 partes para evitar bloqueo de GitHub
 const TOKEN_PARTE_1 = 'github_pat_11BNJ3MTA0TbvdFemUcNH4_1FvCl7';
 const TOKEN_PARTE_2 = 'VvaIdtEh5aHFbhCesSDEc4PILsHSvxn3dcbHf5X47QSFYeRh5pi3H';
 const GIT_TOKEN = TOKEN_PARTE_1 + TOKEN_PARTE_2; 
 
-// Acá definís las contraseñas. Cada contraseña crea un usuario distinto.
 const USERS = {
   'y28c1992Y@': { id: 'admin', name: 'YanDyNewMan' },
-  'Ancla1234':     { id: 'amigo1', name: 'ANCLA' },
-  'Alejandro1992@':     { id: 'amigo2', name: 'Alejandro' }
-};
-// =====================================================================
-
-const STORAGE_KEYS = { 
-  SESSION: 'gb_session_active',
-  USER_ID: 'gb_current_user_id',
-  USER_NAME: 'gb_current_user_name'
+  'Ancla1234':  { id: 'amigo1', name: 'ANCLA' },
+  'Alejandro1992@': { id: 'amigo2', name: 'Alejandro' }
 };
 
-let gitToken = GIT_TOKEN; // El token queda fijo en el código
+const STORAGE_KEYS = { SESSION: 'gb_session_active', USER_ID: 'gb_current_user_id', USER_NAME: 'gb_current_user_name' };
+
+let gitToken = GIT_TOKEN;
 let currentUserId = null;
 let currentUserName = '';
+let currentTrainerPhoto = '';
 let clientsIndex = [];
 let currentClientId = null;
 let confirmCallback = null;
+let trainerProfile = { name: '', photo: '' };
 
 /* ============ UTILS ============ */
+function generateShortId() {
+  return Math.floor(10000000 + Math.random() * 90000000).toString();
+}
 function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 9); }
 function todayISO() { return new Date().toISOString().split('T')[0]; }
 function formatDate(iso) {
@@ -518,7 +498,6 @@ function calcAge(birthdate) { if (!birthdate) return null; const d = new Date(bi
 function calcIMC(weight, height) { if (!weight || !height) return null; const h = height / 100; return (weight / (h * h)).toFixed(1); }
 function getInitials(name) { if (!name) return '?'; const p = name.trim().split(' '); return p.length === 1 ? p[0].charAt(0).toUpperCase() : (p[0].charAt(0) + p[p.length - 1].charAt(0)).toUpperCase(); }
 function escapeHtml(str) { if (str == null) return ''; return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); }
-
 function encodeBase64(str) { return btoa(unescape(encodeURIComponent(str))); }
 function decodeBase64(b64) { return decodeURIComponent(escape(atob(b64))); }
 
@@ -530,16 +509,13 @@ function showToast(message, type = 'success', duration = 2800) {
   toast.innerHTML = spinner + '<span>' + message + '</span>';
   toast.className = 'toast is-visible ' + (type === 'syncing' ? '' : type);
   clearTimeout(toastTimer);
-  if (type !== 'syncing') {
-    toastTimer = setTimeout(() => toast.classList.remove('is-visible'), duration);
-  }
+  if (type !== 'syncing') toastTimer = setTimeout(() => toast.classList.remove('is-visible'), duration);
 }
 
 /* ============ MODALS ============ */
 function openModal(id) { document.getElementById(id).classList.add('is-open'); document.body.style.overflow = 'hidden'; }
 function closeModal(id) { document.getElementById(id).classList.remove('is-open'); document.body.style.overflow = ''; }
 function closeAllModals() { document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('is-open')); document.body.style.overflow = ''; }
-
 function showConfirm(heading, text, callback, acceptLabel = 'Eliminar') {
   document.getElementById('confirmHeading').textContent = heading;
   document.getElementById('confirmText').textContent = text;
@@ -551,10 +527,7 @@ document.getElementById('confirmCancel').addEventListener('click', () => { confi
 document.getElementById('confirmAccept').addEventListener('click', () => { if (confirmCallback) confirmCallback(); confirmCallback = null; closeModal('confirmModal'); });
 
 /* ============ GITHUB API ============ */
-function setSyncing(isSyncing) {
-  document.getElementById('syncIndicator').classList.toggle('is-syncing', isSyncing);
-}
-
+function setSyncing(isSyncing) { document.getElementById('syncIndicator').classList.toggle('is-syncing', isSyncing); }
 async function apiGet(path) {
   const url = `${API_BASE}${path}`;
   const res = await fetch(url, { headers: { 'Authorization': `Bearer ${gitToken}`, 'Accept': 'application/vnd.github+json' } });
@@ -562,63 +535,38 @@ async function apiGet(path) {
   if (!res.ok) throw new Error(`Error ${res.status}`);
   return res.json();
 }
-
 async function apiPut(path, content, sha, message) {
   const url = `${API_BASE}${path}`;
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: { 'Authorization': `Bearer ${gitToken}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, content: encodeBase64(JSON.stringify(content)), sha })
-  });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.message || 'Error al guardar en GitHub');
-  }
+  const res = await fetch(url, { method: 'PUT', headers: { 'Authorization': `Bearer ${gitToken}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ message, content: encodeBase64(JSON.stringify(content)), sha }) });
+  if (!res.ok) { const err = await res.json(); throw new Error(err.message || 'Error al guardar en GitHub'); }
   return res.json();
 }
-
 async function apiDelete(path, sha, message) {
   const url = `${API_BASE}${path}`;
-  const res = await fetch(url, {
-    method: 'DELETE',
-    headers: { 'Authorization': `Bearer ${gitToken}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, sha })
-  });
+  const res = await fetch(url, { method: 'DELETE', headers: { 'Authorization': `Bearer ${gitToken}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ message, sha }) });
   if (!res.ok) throw new Error('Error al eliminar en GitHub');
   return res.json();
 }
 
-/* ============ DATA LAYER (USER ISOLATION) ============ */
+/* ============ DATA LAYER ============ */
 async function getIndex() {
-  try {
-    const file = await apiGet(`clients/${currentUserId}/index.json`);
-    if (!file) return [];
-    return JSON.parse(decodeBase64(file.content));
-  } catch (e) {
-    return []; 
-  }
+  try { const file = await apiGet(`clients/${currentUserId}/index.json`); if (!file) return []; return JSON.parse(decodeBase64(file.content)); } catch (e) { return []; }
 }
-
 async function saveIndex(newIndex) {
   const path = `clients/${currentUserId}/index.json`;
   const existing = await apiGet(path);
-  const sha = existing ? existing.sha : null;
-  await apiPut(path, newIndex, sha, `Update index for ${currentUserName}`);
+  await apiPut(path, newIndex, existing ? existing.sha : null, `Update index for ${currentUserName}`);
 }
-
 async function getClient(id) {
   const file = await apiGet(`clients/${currentUserId}/${id}.json`);
   if (!file) return null;
   return JSON.parse(decodeBase64(file.content));
 }
-
 async function saveClientData(client) {
   const path = `clients/${currentUserId}/${client.id}.json`;
   const existing = await apiGet(path);
-  const sha = existing ? existing.sha : null;
-  await apiPut(path, client, sha, `Update client: ${client.name}`);
+  await apiPut(path, client, existing ? existing.sha : null, `Update client: ${client.name}`);
 }
-
 async function deleteClientData(id) {
   const path = `clients/${currentUserId}/${id}.json`;
   const existing = await apiGet(path);
@@ -626,30 +574,108 @@ async function deleteClientData(id) {
   await apiDelete(path, existing.sha, `Delete client: ${id}`);
 }
 
+/* ============ TRAINER PROFILE ============ */
+async function getTrainerProfile() {
+  try {
+    const file = await apiGet(`trainers/${currentUserId}.json`);
+    if (!file) return { name: currentUserName, photo: '' };
+    return JSON.parse(decodeBase64(file.content));
+  } catch (e) {
+    return { name: currentUserName, photo: '' };
+  }
+}
+async function saveTrainerProfile(profile) {
+  const path = `trainers/${currentUserId}.json`;
+  const existing = await apiGet(path);
+  await apiPut(path, profile, existing ? existing.sha : null, `Update trainer profile: ${profile.name}`);
+}
+function updateBadgeUI() {
+  document.getElementById('userBadgeName').textContent = trainerProfile.name || currentUserName;
+  const photoEl = document.getElementById('userBadgePhoto');
+  if (trainerProfile.photo) {
+    photoEl.innerHTML = `<img src="${trainerProfile.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  } else {
+    photoEl.textContent = getInitials(trainerProfile.name || currentUserName);
+  }
+}
+
+document.getElementById('userBadge').addEventListener('click', async () => {
+  document.getElementById('trainerNameInput').value = trainerProfile.name || currentUserName;
+  const preview = document.getElementById('trainerPhotoPreview');
+  if (trainerProfile.photo) {
+    preview.innerHTML = `<img src="${trainerProfile.photo}" class="profile-photo-preview">`;
+  } else {
+    preview.textContent = getInitials(trainerProfile.name || currentUserName);
+  }
+  openModal('trainerModal');
+});
+
+document.getElementById('trainerPhotoInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxDim = 300;
+      let { width, height } = img;
+      if (width > height && width > maxDim) { height = (height * maxDim) / width; width = maxDim; } 
+      else if (height > maxDim) { width = (width * maxDim) / height; height = maxDim; }
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      trainerProfile.photo = canvas.toDataURL('image/jpeg', 0.8);
+      document.getElementById('trainerPhotoPreview').innerHTML = `<img src="${trainerProfile.photo}" class="profile-photo-preview">`;
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('saveTrainerBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('saveTrainerBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Guardando...';
+  setSyncing(true);
+  try {
+    trainerProfile.name = document.getElementById('trainerNameInput').value.trim() || currentUserName;
+    await saveTrainerProfile(trainerProfile);
+    updateBadgeUI();
+    showToast('Perfil actualizado');
+    closeModal('trainerModal');
+  } catch (err) {
+    showToast('Error al guardar perfil', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Guardar perfil';
+    setSyncing(false);
+  }
+});
+
 /* ============ LOGIN ============ */
 function checkLogin() {
   const isLoggedIn = sessionStorage.getItem(STORAGE_KEYS.SESSION) === 'true';
   currentUserId = sessionStorage.getItem(STORAGE_KEYS.USER_ID);
   currentUserName = sessionStorage.getItem(STORAGE_KEYS.USER_NAME) || 'Entrenador';
-  
   if (isLoggedIn && currentUserId) {
     showApp();
   } else {
     showLogin();
   }
 }
-
 function showLogin() {
   document.getElementById('loginScreen').classList.remove('is-hidden');
   document.getElementById('app').classList.remove('is-active');
   document.getElementById('passwordInput').value = '';
   document.getElementById('loginError').textContent = '';
 }
-
-function showApp() {
+async function showApp() {
   document.getElementById('loginScreen').classList.add('is-hidden');
   document.getElementById('app').classList.add('is-active');
-  document.getElementById('userBadge').textContent = currentUserName;
+  setSyncing(true);
+  trainerProfile = await getTrainerProfile();
+  setSyncing(false);
+  updateBadgeUI();
   renderDashboard();
 }
 
@@ -658,25 +684,14 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   const inputPass = document.getElementById('passwordInput').value;
   const errEl = document.getElementById('loginError');
   const btn = document.getElementById('loginBtn');
-  
-  // 1. Verificar si la contraseña existe en nuestro diccionario USERS
-  if (!USERS[inputPass]) {
-    errEl.textContent = 'Contraseña incorrecta.';
-    return;
-  }
-
+  if (!USERS[inputPass]) { errEl.textContent = 'Contraseña incorrecta.'; return; }
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div> <span>Verificando...</span>';
-  
-  // 2. Asignar el usuario actual
   currentUserId = USERS[inputPass].id;
   currentUserName = USERS[inputPass].name;
-
   try {
-    // Hacemos un test rápido para asegurar que el token de GitHub sigue siendo válido
     const test = await apiGet(`clients/${currentUserId}/index.json`);
     if (test || test === null) {
-      // Si funcionó, guardamos la sesión
       sessionStorage.setItem(STORAGE_KEYS.SESSION, 'true');
       sessionStorage.setItem(STORAGE_KEYS.USER_ID, currentUserId);
       sessionStorage.setItem(STORAGE_KEYS.USER_NAME, currentUserName);
@@ -705,32 +720,29 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 async function renderDashboard() {
   const grid = document.getElementById('clientsGrid');
   const search = document.getElementById('searchInput').value.toLowerCase().trim();
-  
   setSyncing(true);
   clientsIndex = await getIndex();
   setSyncing(false);
 
   clientsIndex.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-
   document.getElementById('statTotal').textContent = clientsIndex.length;
+  
   const now = new Date();
   const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
   let weekMeasurements = 0;
-  clientsIndex.forEach(c => {
-    if (c.lastDate && new Date(c.lastDate) >= weekAgo) weekMeasurements++;
-  });
+  clientsIndex.forEach(c => { if (c.lastDate && new Date(c.lastDate) >= weekAgo) weekMeasurements++; });
   document.getElementById('statWeek').textContent = weekMeasurements;
 
   let filtered = clientsIndex;
   if (search) {
-    filtered = clientsIndex.filter(c => c.name && c.name.toLowerCase().includes(search));
+    filtered = clientsIndex.filter(c => (c.name && c.name.toLowerCase().includes(search)) || (c.shortId && c.shortId.includes(search)));
   }
 
   if (filtered.length === 0) {
     if (clientsIndex.length === 0) {
-      grid.innerHTML = `<div class="empty-state"><h3>Todavía no hay clientes</h3><p>Hacé clic en "Nuevo cliente" para cargar tu primer atleta. Los datos se guardarán automáticamente en tu repositorio de GitHub.</p><button class="btn btn-primary" onclick="document.getElementById('addClientBtn').click()">+ Cargar primer cliente</button></div>`;
+      grid.innerHTML = `<div class="empty-state"><h3>Todavía no hay clientes</h3><p>Hacé clic en "Nuevo cliente" para cargar tu primer atleta.</p><button class="btn btn-primary" onclick="document.getElementById('addClientBtn').click()">+ Cargar primer cliente</button></div>`;
     } else {
-      grid.innerHTML = `<div class="empty-state"><h3>Sin resultados</h3><p>No se encontraron clientes con "<strong>${escapeHtml(search)}</strong>".</p></div>`;
+      grid.innerHTML = `<div class="empty-state"><h3>Sin resultados</h3></div>`;
     }
     return;
   }
@@ -746,9 +758,26 @@ async function renderDashboard() {
       else progressHtml = `<span class="progress-indicator flat">— ESTABLE</span>`;
     }
     const photoHtml = c.photo ? `<img src="${c.photo}" alt="${escapeHtml(c.name)}">` : `<div class="placeholder">${getInitials(c.name)}</div>`;
+    
+    let payAlert = '';
+    if (c.paymentStatus === 'Vencido') {
+      payAlert = '<div class="payment-alert">CUOTA VENCIDA</div>';
+    } else if (c.paymentDate) {
+      const payDate = new Date(c.paymentDate + 'T00:00:00');
+      const diffTime = payDate - now;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays <= 3 && diffDays >= 0) {
+        payAlert = `<div class="payment-alert" style="background:var(--color-success);">VENCE EN ${diffDays}D</div>`;
+      }
+    }
+
     return `
       <div class="client-card" data-id="${c.id}">
-        <div class="client-card-photo">${photoHtml}</div>
+        <div class="client-card-photo">
+          ${photoHtml}
+          <div class="client-card-id">ID: ${c.shortId || '--------'}</div>
+          ${payAlert}
+        </div>
         <div class="client-card-name">${escapeHtml(c.name || 'Sin nombre')}</div>
         <div class="client-card-goal">${escapeHtml(c.goal || 'Sin objetivo definido')}</div>
         <div class="client-card-meta">
@@ -763,32 +792,7 @@ async function renderDashboard() {
   });
 }
 
-document.getElementById('searchInput').addEventListener('input', () => {
-  const grid = document.getElementById('clientsGrid');
-  const search = document.getElementById('searchInput').value.toLowerCase().trim();
-  let filtered = clientsIndex;
-  if (search) filtered = clientsIndex.filter(c => c.name && c.name.toLowerCase().includes(search));
-  
-  if (filtered.length === 0) {
-    grid.innerHTML = `<div class="empty-state"><h3>Sin resultados</h3></div>`;
-    return;
-  }
-  
-  grid.innerHTML = filtered.map(c => {
-    const delta = c.firstWeight && c.lastWeight ? (c.lastWeight - c.firstWeight) : null;
-    let progressHtml = '<span class="progress-indicator new">SIN MEDICIONES</span>';
-    if (c.measurementsCount === 1) progressHtml = `<span class="progress-indicator new">1 MEDICIÓN</span>`;
-    else if (delta != null) {
-      if (delta > 0) progressHtml = `<span class="progress-indicator up">▲ ${delta.toFixed(1)} kg</span>`;
-      else if (delta < 0) progressHtml = `<span class="progress-indicator down">▼ ${Math.abs(delta).toFixed(1)} kg</span>`;
-      else progressHtml = `<span class="progress-indicator flat">— ESTABLE</span>`;
-    }
-    const photoHtml = c.photo ? `<img src="${c.photo}" alt="${escapeHtml(c.name)}">` : `<div class="placeholder">${getInitials(c.name)}</div>`;
-    return `<div class="client-card" data-id="${c.id}"><div class="client-card-photo">${photoHtml}</div><div class="client-card-name">${escapeHtml(c.name || 'Sin nombre')}</div><div class="client-card-goal">${escapeHtml(c.goal || 'Sin objetivo')}</div><div class="client-card-meta"><span>${c.measurementsCount || 0} mediciones</span>${progressHtml}</div></div>`;
-  }).join('');
-  
-  grid.querySelectorAll('.client-card').forEach(card => card.addEventListener('click', () => openClient(card.dataset.id)));
-});
+document.getElementById('searchInput').addEventListener('input', renderDashboard);
 
 /* ============ ADD/EDIT CLIENT ============ */
 document.getElementById('addClientBtn').addEventListener('click', () => openClientForm());
@@ -809,11 +813,17 @@ function openClientForm(clientId = null) {
     document.getElementById('clientGoal').value = c.goal || '';
     document.getElementById('clientHeight').value = c.height || '';
     document.getElementById('clientStartDate').value = c.startDate || '';
+    document.getElementById('clientPaymentDate').value = c.paymentDate || '';
+    document.getElementById('clientPaymentStatus').value = c.paymentStatus || 'Al día';
+    document.getElementById('clientRoutine').value = c.routine || '';
+    document.getElementById('clientDiet').value = c.diet || '';
     document.getElementById('clientNotes').value = c.notes || '';
   } else {
     title.innerHTML = 'Nuevo <span class="accent">cliente</span>';
-    ['clientName','clientBirthdate','clientPhone','clientEmail','clientGoal','clientHeight','clientNotes'].forEach(id => document.getElementById(id).value = '');
+    ['clientName','clientBirthdate','clientPhone','clientEmail','clientGoal','clientHeight','clientRoutine','clientDiet','clientNotes'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('clientStartDate').value = todayISO();
+    document.getElementById('clientPaymentDate').value = '';
+    document.getElementById('clientPaymentStatus').value = 'Al día';
   }
   openModal('clientModal');
   setTimeout(() => document.getElementById('clientName').focus(), 200);
@@ -822,10 +832,7 @@ function openClientForm(clientId = null) {
 document.getElementById('saveClientBtn').addEventListener('click', async () => {
   const id = document.getElementById('clientId').value;
   const name = document.getElementById('clientName').value.trim();
-  if (!name) {
-    showToast('El nombre es obligatorio', 'error');
-    return;
-  }
+  if (!name) { showToast('El nombre es obligatorio', 'error'); return; }
 
   const btn = document.getElementById('saveClientBtn');
   btn.disabled = true;
@@ -843,10 +850,15 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
       clientData.goal = document.getElementById('clientGoal').value.trim();
       clientData.height = document.getElementById('clientHeight').value ? parseFloat(document.getElementById('clientHeight').value) : null;
       clientData.startDate = document.getElementById('clientStartDate').value || todayISO();
+      clientData.paymentDate = document.getElementById('clientPaymentDate').value;
+      clientData.paymentStatus = document.getElementById('clientPaymentStatus').value;
+      clientData.routine = document.getElementById('clientRoutine').value.trim();
+      clientData.diet = document.getElementById('clientDiet').value.trim();
       clientData.notes = document.getElementById('clientNotes').value.trim();
     } else {
       clientData = {
         id: uid(),
+        shortId: generateShortId(), // <-- ID CORTO DE 8 CIFRAS
         name: name,
         birthdate: document.getElementById('clientBirthdate').value,
         phone: document.getElementById('clientPhone').value.trim(),
@@ -854,6 +866,10 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
         goal: document.getElementById('clientGoal').value.trim(),
         height: document.getElementById('clientHeight').value ? parseFloat(document.getElementById('clientHeight').value) : null,
         startDate: document.getElementById('clientStartDate').value || todayISO(),
+        paymentDate: document.getElementById('clientPaymentDate').value,
+        paymentStatus: document.getElementById('clientPaymentStatus').value,
+        routine: document.getElementById('clientRoutine').value.trim(),
+        diet: document.getElementById('clientDiet').value.trim(),
         notes: document.getElementById('clientNotes').value.trim(),
         photo: '',
         measurements: [],
@@ -862,10 +878,10 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
     }
 
     await saveClientData(clientData);
-
     const idx = clientsIndex.findIndex(c => c.id === clientData.id);
     const indexEntry = {
       id: clientData.id,
+      shortId: clientData.shortId,
       name: clientData.name,
       goal: clientData.goal,
       photo: clientData.photo,
@@ -874,6 +890,10 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
       phone: clientData.phone,
       email: clientData.email,
       startDate: clientData.startDate,
+      paymentDate: clientData.paymentDate,
+      paymentStatus: clientData.paymentStatus,
+      routine: clientData.routine,
+      diet: clientData.diet,
       notes: clientData.notes,
       measurementsCount: clientData.measurements ? clientData.measurements.length : 0,
       lastDate: clientData.measurements && clientData.measurements.length > 0 ? [...clientData.measurements].sort((a,b) => (b.date||'').localeCompare(a.date||''))[0].date : null,
@@ -884,7 +904,6 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
     else clientsIndex.push(indexEntry);
     
     await saveIndex(clientsIndex);
-
     showToast(id ? 'Cliente actualizado' : 'Cliente agregado');
     closeModal('clientModal');
 
@@ -895,7 +914,6 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
     }
   } catch (err) {
     showToast('Error al guardar en GitHub', 'error');
-    console.error(err);
   } finally {
     btn.disabled = false;
     btn.innerHTML = 'Guardar cliente';
@@ -930,18 +948,14 @@ async function renderClientDetail(clientId) {
   const c = await getClient(clientId);
   setSyncing(false);
   
-  if (!c) {
-    showToast('Cliente no encontrado', 'error');
-    backToDashboard();
-    return;
-  }
+  if (!c) { showToast('Cliente no encontrado', 'error'); backToDashboard(); return; }
 
   const idx = clientsIndex.findIndex(x => x.id === c.id);
   if (idx > -1) {
     clientsIndex[idx].notes = c.notes;
     clientsIndex[idx].photo = c.photo;
-    clientsIndex[idx].phone = c.phone;
-    clientsIndex[idx].email = c.email;
+    clientsIndex[idx].routine = c.routine;
+    clientsIndex[idx].diet = c.diet;
   }
 
   const container = document.getElementById('clientContent');
@@ -951,6 +965,7 @@ async function renderClientDetail(clientId) {
   const measurements = (c.measurements || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const latest = measurements[0] || null;
   const first = measurements[measurements.length - 1] || null;
+  const prev = measurements[1] || null; // Para calcular diferencia con la anterior
 
   function deltaCard(label, latestVal, firstVal, unit, isInverted = false) {
     if (latestVal == null) return `<div class="progress-card"><div class="pc-label">${label}</div><div class="pc-current">—</div><div class="pc-delta none">SIN DATOS</div></div>`;
@@ -973,9 +988,29 @@ async function renderClientDetail(clientId) {
   const muscleCard = deltaCard('% Músculo', latest?.muscle, first?.muscle, '%');
   const waistCard = deltaCard('Cintura', latest?.waist, first?.waist, 'cm', true);
 
+  // WhatsApp Button Logic
+  let waBtnHtml = '';
+  if (c.phone) {
+    let waMsg = `Hola ${c.name}! Tu resumen de hoy en Gym Brothers: \n\n`;
+    if (latest) {
+      waMsg += `⚖️ Peso: ${latest.weight} kg\n`;
+      if (prev && latest.weight && prev.weight) {
+        const diff = (parseFloat(latest.weight) - parseFloat(prev.weight)).toFixed(1);
+        waMsg += `📊 Cambio anterior: ${diff > 0 ? '+' : ''}${diff} kg\n`;
+      }
+      if (latest.bodyFat) waMsg += `📉 % Grasa: ${latest.bodyFat}%\n`;
+      if (latest.muscle) waMsg += `💪 % Músculo: ${latest.muscle}%\n`;
+    } else {
+      waMsg += `Aún no tenemos mediciones registradas.`;
+    }
+    waMsg += `\n¡A seguir con todo! 💥`;
+    const waLink = `https://wa.me/${c.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(waMsg)}`;
+    waBtnHtml = `<a href="${waLink}" target="_blank" class="action-btn wa">Enviar por WhatsApp</a>`;
+  }
+
   let tableHtml = '';
   if (measurements.length === 0) {
-    tableHtml = '<div class="measurements-empty">Todavía no hay mediciones registradas.<br>Hacé clic en "Nueva medición" para cargar la primera.</div>';
+    tableHtml = '<div class="measurements-empty">Todavía no hay mediciones registradas.</div>';
   } else {
     const rows = measurements.map(m => {
       const imc = calcIMC(m.weight, c.height);
@@ -1005,7 +1040,7 @@ async function renderClientDetail(clientId) {
         <label class="client-photo-edit">Cambiar foto<input type="file" id="photoInput" accept="image/*"></label>
       </div>
       <div class="client-info-block">
-        <div class="label">Cliente</div>
+        <div class="label">Cliente ID: ${c.shortId || '--------'}</div>
         <div class="name">${escapeHtml(c.name || 'Sin nombre')}</div>
         ${c.goal ? `<div class="goal-line">${escapeHtml(c.goal)}</div>` : ''}
         <div class="client-info-grid">
@@ -1015,12 +1050,13 @@ async function renderClientDetail(clientId) {
           <div class="info-cell"><div class="lbl">Mediciones</div><div class="val">${measurements.length}</div></div>
           <div class="info-cell"><div class="lbl">Teléfono</div><div class="val">${c.phone ? escapeHtml(c.phone) : '—'}</div></div>
           <div class="info-cell"><div class="lbl">Email</div><div class="val">${c.email ? escapeHtml(c.email) : '—'}</div></div>
-          <div class="info-cell"><div class="lbl">Última medición</div><div class="val">${latest ? formatDate(latest.date) : '—'}</div></div>
-          <div class="info-cell"><div class="lbl">IMC actual</div><div class="val">${latest && c.height ? calcIMC(latest.weight, c.height) : '—'}</div></div>
+          <div class="info-cell"><div class="lbl">Vto. Cuota</div><div class="val">${formatDate(c.paymentDate)}</div></div>
+          <div class="info-cell"><div class="lbl">Estado</div><div class="val">${c.paymentStatus || 'Al día'}</div></div>
         </div>
       </div>
       <div class="client-actions">
         <button class="action-btn primary" id="addMeasurementBtn">+ Nueva medición</button>
+        ${waBtnHtml}
         <button class="action-btn" id="editClientBtn">Editar cliente</button>
         <button class="action-btn danger" id="deleteClientBtn">Eliminar cliente</button>
       </div>
@@ -1034,15 +1070,23 @@ async function renderClientDetail(clientId) {
       ${tableHtml}
     </section>
     <section class="notes-section">
+      <div class="label">Rutina de Entrenamiento</div>
+      <div class="notes-content ${!c.routine ? 'notes-empty' : ''}">${c.routine ? escapeHtml(c.routine) : 'Sin rutina asignada. Hacé clic en "Editar cliente".'}</div>
+    </section>
+    <section class="notes-section">
+      <div class="label">Plan Nutricional / Dieta</div>
+      <div class="notes-content ${!c.diet ? 'notes-empty' : ''}">${c.diet ? escapeHtml(c.diet) : 'Sin dieta asignada. Hacé clic en "Editar cliente".'}</div>
+    </section>
+    <section class="notes-section">
       <div class="label">Notas privadas</div>
-      <div class="notes-content ${!c.notes ? 'notes-empty' : ''}">${c.notes ? escapeHtml(c.notes) : 'Sin notas registradas. Hacé clic en "Editar cliente" para agregar.'}</div>
+      <div class="notes-content ${!c.notes ? 'notes-empty' : ''}">${c.notes ? escapeHtml(c.notes) : 'Sin notas registradas.'}</div>
     </section>
   `;
 
   document.getElementById('addMeasurementBtn').addEventListener('click', () => openMeasurementForm(c.id));
   document.getElementById('editClientBtn').addEventListener('click', () => openClientForm(c.id));
   document.getElementById('deleteClientBtn').addEventListener('click', () => {
-    showConfirm('Eliminar cliente', `Se eliminará a "${c.name}" y todas sus ${measurements.length} mediciones de GitHub.`, async () => {
+    showConfirm('Eliminar cliente', `Se eliminará a "${c.name}" y todas sus mediciones.`, async () => {
       setSyncing(true);
       try {
         await deleteClientData(c.id);
@@ -1050,11 +1094,8 @@ async function renderClientDetail(clientId) {
         await saveIndex(clientsIndex);
         showToast('Cliente eliminado');
         backToDashboard();
-      } catch (e) {
-        showToast('Error al eliminar', 'error');
-      } finally {
-        setSyncing(false);
-      }
+      } catch (e) { showToast('Error al eliminar', 'error'); } 
+      finally { setSyncing(false); }
     });
   });
 
@@ -1070,7 +1111,6 @@ async function renderClientDetail(clientId) {
         try {
           c.measurements = c.measurements.filter(x => x.id !== mid);
           await saveClientData(c);
-          
           const idx = clientsIndex.findIndex(x => x.id === c.id);
           if (idx > -1) {
             clientsIndex[idx].measurementsCount = c.measurements.length;
@@ -1083,17 +1123,14 @@ async function renderClientDetail(clientId) {
           }
           showToast('Medición eliminada');
           renderClientDetail(c.id);
-        } catch (err) {
-          showToast('Error al eliminar', 'error');
-        } finally {
-          setSyncing(false);
-        }
+        } catch (err) { showToast('Error al eliminar', 'error'); } 
+        finally { setSyncing(false); }
       });
     });
   });
 }
 
-/* ============ PHOTO UPLOAD ============ */
+/* ============ PHOTO UPLOAD (CLIENT) ============ */
 async function handlePhotoUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -1110,30 +1147,24 @@ async function handlePhotoUpload(e) {
       if (width > height && width > maxDim) { height = (height * maxDim) / width; width = maxDim; } 
       else if (height > maxDim) { width = (width * maxDim) / height; height = maxDim; }
       canvas.width = width; canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
       const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
 
       setSyncing(true);
-      showToast('Subiendo foto a GitHub...', 'syncing');
+      showToast('Subiendo foto...', 'syncing');
       try {
         const c = await getClient(currentClientId);
         c.photo = dataUrl;
         await saveClientData(c);
-        
         const idx = clientsIndex.findIndex(x => x.id === c.id);
         if (idx > -1) {
           clientsIndex[idx].photo = dataUrl;
           await saveIndex(clientsIndex);
         }
-        
         showToast('Foto actualizada');
         renderClientDetail(currentClientId);
-      } catch (err) {
-        showToast('Error al subir foto', 'error');
-      } finally {
-        setSyncing(false);
-      }
+      } catch (err) { showToast('Error al subir foto', 'error'); } 
+      finally { setSyncing(false); }
     };
     img.src = event.target.result;
   };
@@ -1144,7 +1175,6 @@ async function handlePhotoUpload(e) {
 function openMeasurementForm(clientId, measurementId = null) {
   const c = clientsIndex.find(x => x.id === clientId);
   if (!c) return;
-
   document.getElementById('measurementClientId').value = clientId;
   document.getElementById('measurementId').value = measurementId || '';
   const title = document.getElementById('measurementModalTitle');
@@ -1214,7 +1244,6 @@ document.getElementById('saveMeasurementBtn').addEventListener('click', async ()
   const clientId = document.getElementById('measurementClientId').value;
   const measurementId = document.getElementById('measurementId').value;
   const date = document.getElementById('measurementDate').value;
-
   if (!date) { showToast('La fecha es obligatoria', 'error'); return; }
 
   const btn = document.getElementById('saveMeasurementBtn');
@@ -1225,7 +1254,6 @@ document.getElementById('saveMeasurementBtn').addEventListener('click', async ()
   try {
     const c = await getClient(clientId);
     if (!c.measurements) c.measurements = [];
-
     const data = {
       date,
       weight: document.getElementById('mWeight').value ? parseFloat(document.getElementById('mWeight').value) : null,
@@ -1254,10 +1282,8 @@ document.getElementById('saveMeasurementBtn').addEventListener('click', async ()
     }
 
     await saveClientData(c);
-
     const sorted = [...c.measurements].sort((a,b) => (b.date||'').localeCompare(a.date||''));
     const firstS = [...c.measurements].sort((a,b) => (a.date||'').localeCompare(b.date||''));
-    
     const idx = clientsIndex.findIndex(x => x.id === c.id);
     if (idx > -1) {
       clientsIndex[idx].measurementsCount = c.measurements.length;
