@@ -101,7 +101,7 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 .measure-alert { position: absolute; top: 2.2rem; right: 0.5rem; background: var(--color-warn); color: #111; font-family: 'IBM Plex Mono', monospace; font-size: 0.55rem; padding: 0.3rem 0.5rem; text-transform: uppercase; font-weight: 700; }
 .empty-state { grid-column: 1 / -1; text-align: center; padding: 5rem 2rem; border: 1px dashed var(--color-border-strong); background: rgba(255,255,255,0.5); }
 
-.stats-view { padding: 2rem 2rem 6rem; max-width: 1400px; margin: 0 auto; }
+.stats-view, .wa-view { padding: 2rem 2rem 6rem; max-width: 1400px; margin: 0 auto; }
 .client-back { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--color-text-secondary); margin-bottom: 2rem; cursor: pointer; }
 .client-back:hover { color: var(--color-accent); gap: 0.8rem; }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
@@ -234,7 +234,7 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
   .dashboard { padding: 2rem 1.25rem 4rem; } .client-header { grid-template-columns: 1fr; gap: 1.5rem; padding: 1.5rem; }
   .client-photo-wrap { max-width: 200px; } .client-info-grid { grid-template-columns: repeat(2, 1fr); }
   .client-actions { flex-direction: row; flex-wrap: wrap; } .client-actions .action-btn { flex: 1; min-width: 120px; }
-  .client-detail, .stats-view { padding: 1.5rem 1.25rem 4rem; } .form-row { grid-template-columns: 1fr; }
+  .client-detail, .stats-view, .wa-view { padding: 1.5rem 1.25rem 4rem; } .form-row { grid-template-columns: 1fr; }
   .modal-body { padding: 1.5rem; } .modal-foot { padding: 1rem 1.5rem; flex-direction: column-reverse; } .modal-foot .btn { width: 100%; }
   .routine-builder-row { grid-template-columns: 1fr 1fr; }
 }
@@ -277,7 +277,7 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
     <div class="dashboard-header">
       <div class="dashboard-title-block">
         <div class="label">Panel de control</div>
-        <h1 class="dashboard-title">Tus <span class="accent">clientes</span>.</h1>
+        <h1 class="dashboard-title" id="dashTitle">Tus <span class="accent">clientes</span>.</h1>
       </div>
       <div class="dashboard-stats">
         <div class="dash-stat"><div class="num" id="statTotal">0</div><div class="lbl">Activos</div></div>
@@ -299,6 +299,11 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
   <main class="stats-view" id="statsView" style="display:none">
     <a class="client-back" id="statsBack">← Volver al panel</a>
     <div id="statsContent"></div>
+  </main>
+
+  <main class="wa-view" id="waView" style="display:none">
+    <a class="client-back" id="waBack">← Volver al panel</a>
+    <div id="waContent"></div>
   </main>
 
   <main class="client-detail" id="clientView" style="display:none">
@@ -443,41 +448,6 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
     <div class="modal-head"><h3>Gestión de <span class="accent">Entrenadores</span></h3><button class="modal-close" data-close-modal="trainersModal">×</button></div>
     <div class="modal-body" id="trainersModalBody"></div>
     <div class="modal-foot"><button class="btn btn-secondary" data-close-modal="trainersModal">Cerrar</button></div>
-  </div>
-</div>
-
-<!-- BROADCAST MODAL (Enviar WhatsApp) -->
-<div class="modal-backdrop" id="broadcastModal">
-  <div class="modal">
-    <div class="modal-head"><h3>Enviar <span class="accent">WhatsApp</span></h3><button class="modal-close" data-close-modal="broadcastModal">×</button></div>
-    <div class="modal-body">
-      <div class="form-field full">
-        <label>Mensaje a enviar</label>
-        <textarea id="broadcastMsg" placeholder="Escribe tu mensaje..." style="min-height: 100px;"></textarea>
-      </div>
-      
-      <!-- Filtros de destinatarios -->
-      <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin: 1rem 0;">
-        <button class="filter-chip active" data-filter="all">Todos</button>
-        <button class="filter-chip" data-filter="debt">🔴 Solo Deudores</button>
-        <button class="filter-chip" data-filter="paid">🟢 Solo Al Día</button>
-      </div>
-      
-      <!-- Filtro por entrenador (solo admin) -->
-      <div id="waTrainerFilterRow" style="display:none; margin-bottom: 1rem;">
-        <select id="waTrainerFilter" class="filter-select" style="width:100%;"></select>
-      </div>
-      
-      <!-- Acciones masivas -->
-      <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom: 1rem;">
-        <button class="btn btn-secondary" id="waCopyMsg" style="flex:1; min-width: 150px;">📋 Copiar Mensaje</button>
-        <button class="btn btn-wa" id="waOpenGeneric" style="flex:1; min-width: 150px;">💬 Abrir WhatsApp (sin número)</button>
-      </div>
-      
-      <div class="section-divider-title">Destinatarios (<span id="waRecipientCount">0</span>)</div>
-      <div id="broadcastList"></div>
-    </div>
-    <div class="modal-foot"><button class="btn btn-secondary" data-close-modal="broadcastModal">Cerrar</button></div>
   </div>
 </div>
 
@@ -635,6 +605,8 @@ async function showApp() {
   isAdmin = currentUserId === 'admin';
   document.getElementById('loginScreen').classList.add('is-hidden');
   document.getElementById('app').classList.add('is-active');
+  // Cambiar título según rol
+  document.getElementById('dashTitle').innerHTML = isAdmin ? 'Centro de <span class="accent">Control</span>' : 'Tus <span class="accent">clientes</span>.';
   if (isAdmin) {
     document.getElementById('trainerFilter').style.display = 'block';
     document.getElementById('trainersBtn').style.display = 'inline-flex';
@@ -804,102 +776,137 @@ function renderStatsView() {
   }));
 }
 
-/* ============ TRAINERS MODAL ============ */
-document.getElementById('trainersBtn').addEventListener('click', () => {
-  const body = document.getElementById('trainersModalBody');
-  body.innerHTML = getUniqueTrainers().map(t => {
-    const tClients = clientsIndex.filter(c => c.trainerId === t.id);
-    const totalRevenue = tClients.reduce((sum, c) => sum + (c.paymentAmount ? parseFloat(c.paymentAmount) : 0), 0);
-    const overdueCount = tClients.filter(c => c.paymentStatus === 'Vencido').length;
-    return `<div class="pay-list-item"><div class="info"><h4>${t.name}</h4><p>Clientes Activos: ${tClients.length} | Vencidos: ${overdueCount}</p><p>Facturación Mensual: ${fmtMoney(totalRevenue)}</p></div></div>`;
-  }).join('');
-  openModal('trainersModal');
-});
-
-/* ============ WHATSAPP MESSAGING (Broadcast) ============ */
+/* ============ WHATSAPP VIEW (Full Page) ============ */
 document.getElementById('broadcastBtn').addEventListener('click', () => {
-  document.getElementById('broadcastMsg').value = '';
+  document.getElementById('dashboardView').style.display = 'none';
+  document.getElementById('waView').style.display = 'block';
+  document.getElementById('topbarBrand').classList.add('has-back');
   waFilter = 'all';
   waTrainerFilterVal = 'all';
-  
-  // Mostrar filtro de entrenador solo para admin
-  document.getElementById('waTrainerFilterRow').style.display = isAdmin ? 'block' : 'none';
-  if (isAdmin) {
-    const opts = getUniqueTrainers().map(u => `<option value="${u.id}">${u.name}</option>`).join('');
-    document.getElementById('waTrainerFilter').innerHTML = '<option value="all">Todos los entrenadores</option>' + opts;
-    document.getElementById('waTrainerFilter').value = 'all';
-  }
-  
-  // Resetear chips de filtro
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active', 'debt', 'paid'));
-  document.querySelector('.filter-chip[data-filter="all"]').classList.add('active');
-  
-  renderBroadcastList('');
-  openModal('broadcastModal');
+  renderWaView();
+  window.scrollTo({ top: 0, behavior: 'instant' });
 });
 
-document.getElementById('broadcastMsg').addEventListener('input', (e) => renderBroadcastList(e.target.value));
-
-// Click en chips de filtro
-document.querySelectorAll('.filter-chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active', 'debt', 'paid'));
-    chip.classList.add('active');
-    if (chip.dataset.filter === 'debt') chip.classList.add('debt');
-    if (chip.dataset.filter === 'paid') chip.classList.add('paid');
-    waFilter = chip.dataset.filter;
-    renderBroadcastList(document.getElementById('broadcastMsg').value);
-  });
+document.getElementById('waBack').addEventListener('click', () => {
+  document.getElementById('waView').style.display = 'none';
+  document.getElementById('dashboardView').style.display = 'block';
+  document.getElementById('topbarBrand').classList.remove('has-back');
+  window.scrollTo({ top: 0, behavior: 'instant' });
 });
 
-// Filtro por entrenador (solo admin)
-document.addEventListener('change', (e) => {
-  if (e.target && e.target.id === 'waTrainerFilter') {
-    waTrainerFilterVal = e.target.value;
-    renderBroadcastList(document.getElementById('broadcastMsg').value);
-  }
-});
-
-// Copiar mensaje al portapapeles
-document.getElementById('waCopyMsg').addEventListener('click', () => {
-  const msg = document.getElementById('broadcastMsg').value.trim() || 'Hola!';
-  navigator.clipboard.writeText(msg).then(() => showToast('Mensaje copiado!')).catch(() => showToast('Error al copiar', 'error'));
-});
-
-// Abrir WhatsApp sin número específico (mensaje cargado)
-document.getElementById('waOpenGeneric').addEventListener('click', () => {
-  const msg = document.getElementById('broadcastMsg').value.trim() || 'Hola!';
-  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-  showToast('WhatsApp abierto. Elegí a quién enviarlo.');
-});
-
-// Filtrar destinatarios según permisos y filtros activos
 function getFilteredRecipients() {
   let recipients = clientsIndex.filter(c => c.phone);
-  
-  // Admin puede filtrar por entrenador; trainer solo ve los suyos
   if (isAdmin && waTrainerFilterVal !== 'all') {
     recipients = recipients.filter(c => c.trainerId === waTrainerFilterVal);
   } else if (!isAdmin) {
     recipients = recipients.filter(c => c.trainerId === currentUserId);
   }
-  
-  // Filtrar por estado de pago
   if (waFilter === 'debt') {
     recipients = recipients.filter(c => getPaymentStatus(c) === 'debt');
   } else if (waFilter === 'paid') {
     recipients = recipients.filter(c => getPaymentStatus(c) === 'paid');
   }
-  
   return recipients;
 }
 
-function renderBroadcastList(msg) {
+function renderWaView() {
+  const cont = document.getElementById('waContent');
+  const trainerFilterHtml = isAdmin ? `
+    <div class="form-field full" style="margin-bottom:1rem;">
+      <label>Filtrar por Entrenador</label>
+      <select id="waTrainerFilter" class="filter-select" style="width:100%;">
+        <option value="all">Todos los entrenadores</option>
+        ${getUniqueTrainers().map(u => `<option value="${u.id}">${u.name}</option>`).join('')}
+      </select>
+    </div>
+  ` : '';
+  
+  cont.innerHTML = `
+    <div class="dashboard-header">
+      <div class="dashboard-title-block">
+        <div class="label">Mensajería</div>
+        <h1 class="dashboard-title">Enviar <span class="accent">WhatsApp</span></h1>
+      </div>
+    </div>
+    
+    <div class="form-field full" style="margin-bottom:1rem;">
+      <label>Mensaje a enviar</label>
+      <textarea id="broadcastMsg" placeholder="Escribe tu mensaje..." style="min-height: 120px;"></textarea>
+    </div>
+    
+    ${trainerFilterHtml}
+    
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin: 1rem 0;">
+      <button class="filter-chip active" data-filter="all">Todos</button>
+      <button class="filter-chip" data-filter="debt">🔴 Solo Deudores</button>
+      <button class="filter-chip" data-filter="paid">🟢 Solo Al Día</button>
+    </div>
+    
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom: 1.5rem;">
+      <button class="btn btn-secondary" id="waCopyMsg" style="flex:1; min-width: 150px;">📋 Copiar Mensaje</button>
+      <button class="btn btn-wa" id="waOpenGeneric" style="flex:1; min-width: 150px;">💬 Abrir WhatsApp (sin número)</button>
+    </div>
+    
+    <div class="section-divider-title">Destinatarios (<span id="waRecipientCount">0</span>)</div>
+    <div id="broadcastList"></div>
+  `;
+  
+  // Set initial values
+  document.getElementById('waTrainerFilter') && (document.getElementById('waTrainerFilter').value = waTrainerFilterVal);
+  
+  // Update chips active state
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active', 'debt', 'paid'));
+  const activeChip = document.querySelector(`.filter-chip[data-filter="${waFilter}"]`);
+  if (activeChip) {
+    activeChip.classList.add('active');
+    if (waFilter === 'debt') activeChip.classList.add('debt');
+    if (waFilter === 'paid') activeChip.classList.add('paid');
+  }
+  
+  // Bind events
+  document.getElementById('broadcastMsg').addEventListener('input', (e) => updateBroadcastList(e.target.value));
+  
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      waFilter = chip.dataset.filter;
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active', 'debt', 'paid'));
+      chip.classList.add('active');
+      if (waFilter === 'debt') chip.classList.add('debt');
+      if (waFilter === 'paid') chip.classList.add('paid');
+      updateBroadcastList(document.getElementById('broadcastMsg').value);
+    });
+  });
+  
+  const waTrainerFilter = document.getElementById('waTrainerFilter');
+  if (waTrainerFilter) {
+    waTrainerFilter.addEventListener('change', (e) => {
+      waTrainerFilterVal = e.target.value;
+      updateBroadcastList(document.getElementById('broadcastMsg').value);
+    });
+  }
+  
+  document.getElementById('waCopyMsg').addEventListener('click', () => {
+    const msg = document.getElementById('broadcastMsg').value.trim() || 'Hola!';
+    navigator.clipboard.writeText(msg).then(() => showToast('Mensaje copiado!')).catch(() => showToast('Error al copiar', 'error'));
+  });
+  
+  document.getElementById('waOpenGeneric').addEventListener('click', () => {
+    const msg = document.getElementById('broadcastMsg').value.trim() || 'Hola!';
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    showToast('WhatsApp abierto. Elegí a quién enviarlo.');
+  });
+  
+  updateBroadcastList('');
+}
+
+function updateBroadcastList(msg) {
   const list = document.getElementById('broadcastList');
+  if (!list) return;
   const recipients = getFilteredRecipients();
   const finalMsg = msg.trim() || 'Hola!';
   
-  document.getElementById('waRecipientCount').textContent = recipients.length;
+  const countEl = document.getElementById('waRecipientCount');
+  if (countEl) countEl.textContent = recipients.length;
   
   if (recipients.length === 0) {
     list.innerHTML = '<p style="text-align:center; color:var(--color-text-secondary); padding: 2rem;">No hay clientes que coincidan con el filtro.</p>';
@@ -933,6 +940,18 @@ function markBroadcastSent(id) {
     }
   }
 }
+
+/* ============ TRAINERS MODAL ============ */
+document.getElementById('trainersBtn').addEventListener('click', () => {
+  const body = document.getElementById('trainersModalBody');
+  body.innerHTML = getUniqueTrainers().map(t => {
+    const tClients = clientsIndex.filter(c => c.trainerId === t.id);
+    const totalRevenue = tClients.reduce((sum, c) => sum + (c.paymentAmount ? parseFloat(c.paymentAmount) : 0), 0);
+    const overdueCount = tClients.filter(c => c.paymentStatus === 'Vencido').length;
+    return `<div class="pay-list-item"><div class="info"><h4>${t.name}</h4><p>Clientes Activos: ${tClients.length} | Vencidos: ${overdueCount}</p><p>Facturación Mensual: ${fmtMoney(totalRevenue)}</p></div></div>`;
+  }).join('');
+  openModal('trainersModal');
+});
 
 /* ============ PAYMENTS ============ */
 document.getElementById('payBtn').addEventListener('click', () => {
@@ -1057,6 +1076,7 @@ async function openClient(id, trainerId=null) {
   currentClientTrainerId = trainerId || currentUserId;
   document.getElementById('dashboardView').style.display = 'none';
   document.getElementById('statsView').style.display = 'none';
+  document.getElementById('waView').style.display = 'none';
   document.getElementById('clientView').style.display = 'block';
   document.getElementById('topbarBrand').classList.add('has-back');
   await renderClientDetail(id, currentClientTrainerId);
@@ -1072,7 +1092,11 @@ async function backToDash() {
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 document.getElementById('clientBack').addEventListener('click', backToDash);
-document.getElementById('topbarBrand').addEventListener('click', () => { if(currentClientId || document.getElementById('statsView').style.display === 'block') { if (currentClientId) backToDash(); else document.getElementById('statsBack').click(); } });
+document.getElementById('topbarBrand').addEventListener('click', () => {
+  if (currentClientId) { backToDash(); return; }
+  if (document.getElementById('statsView').style.display === 'block') { document.getElementById('statsBack').click(); return; }
+  if (document.getElementById('waView').style.display === 'block') { document.getElementById('waBack').click(); return; }
+});
 
 function genChartSVG(ms, key, color) {
   const v = ms.filter(m => m[key] != null).sort((a,b) => new Date(a.date) - new Date(b.date));
