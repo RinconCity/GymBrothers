@@ -115,10 +115,6 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 .bar-chart .bar:hover { opacity: 0.7; }
 .bar-chart .bar .label { position: absolute; bottom: -1.5rem; left: 50%; transform: translateX(-50%); font-family: 'IBM Plex Mono', monospace; font-size: 0.55rem; color: var(--color-text-secondary); }
 .bar-chart-container { padding-bottom: 1.5rem; }
-.trainer-row { display: grid; grid-template-columns: 1fr 80px 100px 100px; gap: 1rem; padding: 0.75rem; border-bottom: 1px solid var(--color-border); align-items: center; background: #fff; border: 1px solid var(--color-border); margin-bottom: 0.5rem; }
-.trainer-row.header { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; text-transform: uppercase; color: var(--color-text-secondary); background: #fafafa; }
-.trainer-row .name { font-family: 'Montserrat', sans-serif; font-weight: 800; }
-.trainer-row .val { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; }
 .trainer-note { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--color-text-secondary); margin-top: 0.5rem; font-style: italic; }
 
 .client-detail { padding: 2rem 2rem 6rem; max-width: 1400px; margin: 0 auto; }
@@ -235,7 +231,6 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
   .client-detail, .stats-view { padding: 1.5rem 1.25rem 4rem; } .form-row { grid-template-columns: 1fr; }
   .modal-body { padding: 1.5rem; } .modal-foot { padding: 1rem 1.5rem; flex-direction: column-reverse; } .modal-foot .btn { width: 100%; }
   .routine-builder-row { grid-template-columns: 1fr 1fr; }
-  .trainer-row { grid-template-columns: 1fr 60px 80px 80px; gap: 0.5rem; font-size: 0.75rem; }
 }
 @media (max-width: 600px) { .clients-grid { grid-template-columns: 1fr; } .client-info-grid { grid-template-columns: 1fr; } }
 </style>
@@ -547,7 +542,6 @@ function daysUntilBirthday(birthdate) {
   return Math.ceil((nextBday - today) / (1000 * 60 * 60 * 24));
 }
 
-// Determina el estado de pago para colorear la tarjeta
 function getPaymentStatus(client) {
   if (!client.paymentDay) return 'neutral';
   if (client.paymentStatus === 'Vencido') return 'debt';
@@ -689,7 +683,6 @@ document.getElementById('statsBack').addEventListener('click', () => {
 });
 
 function renderStatsView() {
-  // Admin: ve todos. Trainer: solo los suyos.
   const data = isAdmin ? clientsIndex : clientsIndex.filter(c => c.trainerId === currentUserId);
   const cont = document.getElementById('statsContent');
   
@@ -700,15 +693,25 @@ function renderStatsView() {
   const newThisMonth = data.filter(c => { if (!c.createdAt) return false; const cd = new Date(c.createdAt); return cd.getMonth() === thisMonth && cd.getFullYear() === thisYear; }).length;
   const pendingMeasurements = data.filter(c => daysSinceLastMeasurement(c) > 30).length;
   const overduePayments = data.filter(c => getPaymentStatus(c) === 'debt').length;
-  const paidClients = data.filter(c => getPaymentStatus(c) === 'paid').length;
+  const paidClients = data.filter(c => getPaymentStatus(c) === 'paid');
+  const debtClients = data.filter(c => getPaymentStatus(c) === 'debt');
+  const neutralClients = data.filter(c => getPaymentStatus(c) === 'neutral');
   
-  // Distribución de días de pago
   const dayDistribution = new Array(31).fill(0);
   data.forEach(c => { if (c.paymentDay) { const d = parseInt(c.paymentDay); if (d >= 1 && d <= 31) dayDistribution[d-1]++; } });
   const maxDayCount = Math.max(...dayDistribution, 1);
   
-  // Próximos cumpleaños
   const upcomingBdays = data.filter(c => c.birthdate && daysUntilBirthday(c.birthdate) <= 7).sort((a,b) => daysUntilBirthday(a.birthdate) - daysUntilBirthday(b.birthdate));
+  
+  // Función para generar la tarjeta HTML de un cliente
+  function clientCardHtml(c) {
+    const status = getPaymentStatus(c);
+    const cardClass = status === 'paid' ? 'is-paid' : (status === 'debt' ? 'is-debt' : '');
+    const badgeHtml = status === 'paid' ? '<div class="payment-status-badge paid">AL DÍA</div>' : (status === 'debt' ? '<div class="payment-status-badge debt">DEUDA</div>' : '<div class="payment-status-badge warn">SIN CONFIG</div>');
+    const ph = c.photo ? `<img src="${c.photo}">` : `<div class="placeholder">${getInit(c.name)}</div>`;
+    const tLabel = isAdmin ? `<div class="client-card-trainer">${c.trainerName||'S/D'}</div>` : '';
+    return `<div class="client-card ${cardClass}" data-id="${c.id}" data-trainer="${c.trainerId}"><div class="client-card-photo">${ph}<div class="client-card-id">ID: ${c.shortId||'--------'}</div>${badgeHtml}</div><div class="client-card-name">${escHtml(c.name||'S/N')}</div>${tLabel}<div class="client-card-goal">${escHtml(c.goal||'')}</div><div class="client-card-meta"><span>${fmtMoney(c.paymentAmount)}</span><span>${c.paymentDay ? 'Día ' + c.paymentDay : 'S/D'}</span></div></div>`;
+  }
   
   let html = `
     <div class="dashboard-header">
@@ -722,8 +725,8 @@ function renderStatsView() {
       <div class="stat-card"><div class="lbl">Clientes Activos</div><div class="num">${totalClients}</div></div>
       <div class="stat-card"><div class="lbl">Facturación Mensual</div><div class="num accent">${fmtMoney(totalRevenue)}</div></div>
       <div class="stat-card"><div class="lbl">Nuevos este mes</div><div class="num">${newThisMonth}</div></div>
-      <div class="stat-card"><div class="lbl">Al día (verde)</div><div class="num" style="color:var(--color-success)">${paidClients}</div></div>
-      <div class="stat-card"><div class="lbl">Con deuda (rojo)</div><div class="num" style="color:var(--color-danger)">${overduePayments}</div></div>
+      <div class="stat-card"><div class="lbl">Al día 🟢</div><div class="num" style="color:var(--color-success)">${paidClients.length}</div></div>
+      <div class="stat-card"><div class="lbl">Con deuda 🔴</div><div class="num" style="color:var(--color-danger)">${debtClients.length}</div></div>
       <div class="stat-card"><div class="lbl">Falta Medir</div><div class="num" style="color:var(--color-warn)">${pendingMeasurements}</div></div>
     </div>
     
@@ -746,42 +749,34 @@ function renderStatsView() {
     `;
   }
   
-  // Solo Admin ve la sección de Entrenadores
-  if (isAdmin) {
-    html += `
-      <div class="section-divider-title">Entrenadores (no pagan cuota)</div>
-      <p class="trainer-note">Los entrenadores son trabajadores del gym, no figuran como clientes deudores.</p>
-      <div class="trainer-row header">
-        <div>Entrenador</div><div>Clientes</div><div>Con Deuda</div><div>Facturación</div>
-      </div>
-      ${getUniqueTrainers().map(t => {
-        const tClients = data.filter(c => c.trainerId === t.id);
-        const tRev = tClients.reduce((sum, c) => sum + (c.paymentAmount ? parseFloat(c.paymentAmount) : 0), 0);
-        const tDebt = tClients.filter(c => getPaymentStatus(c) === 'debt').length;
-        return `<div class="trainer-row"><div class="name">${t.name}</div><div class="val">${tClients.length}</div><div class="val" style="color:${tDebt>0?'var(--color-danger)':'inherit'}">${tDebt}</div><div class="val">${fmtMoney(tRev)}</div></div>`;
-      }).join('')}
-    `;
-  }
-  
-  // Sección de Clientes con tarjetas coloreadas
+  // Sección de clientes AL DÍA (verde)
   html += `
-    <div class="section-divider-title">Clientes (${data.length})</div>
-    <p class="trainer-note">🟢 Verde = Al día &nbsp;&nbsp; 🔴 Rojo = Con deuda</p>
-    <div class="clients-grid" id="statsClientsGrid">
-      ${data.map(c => {
-        const status = getPaymentStatus(c);
-        const cardClass = status === 'paid' ? 'is-paid' : (status === 'debt' ? 'is-debt' : '');
-        const badgeHtml = status === 'paid' ? '<div class="payment-status-badge paid">AL DÍA</div>' : (status === 'debt' ? '<div class="payment-status-badge debt">DEUDA</div>' : '<div class="payment-status-badge warn">SIN CONFIG</div>');
-        const ph = c.photo ? `<img src="${c.photo}">` : `<div class="placeholder">${getInit(c.name)}</div>`;
-        const tLabel = isAdmin ? `<div class="client-card-trainer">${c.trainerName||'S/D'}</div>` : '';
-        return `<div class="client-card ${cardClass}" data-id="${c.id}" data-trainer="${c.trainerId}"><div class="client-card-photo">${ph}<div class="client-card-id">ID: ${c.shortId||'--------'}</div>${badgeHtml}</div><div class="client-card-name">${escHtml(c.name||'S/N')}</div>${tLabel}<div class="client-card-goal">${escHtml(c.goal||'')}</div><div class="client-card-meta"><span>${fmtMoney(c.paymentAmount)}</span><span>${c.paymentDay ? 'Día ' + c.paymentDay : 'S/D'}</span></div></div>`;
-      }).join('')}
+    <div class="section-divider-title">🟢 Clientes al día (${paidClients.length})</div>
+    <div class="clients-grid">
+      ${paidClients.length > 0 ? paidClients.map(clientCardHtml).join('') : '<div class="empty-state"><h3>No hay clientes al día</h3></div>'}
     </div>
   `;
   
+  // Sección de clientes CON DEUDA (rojo)
+  html += `
+    <div class="section-divider-title">🔴 Clientes con deuda (${debtClients.length})</div>
+    <div class="clients-grid">
+      ${debtClients.length > 0 ? debtClients.map(clientCardHtml).join('') : '<div class="empty-state"><h3>¡Nadie debe! Todo al día 🎉</h3></div>'}
+    </div>
+  `;
+  
+  // Sección de clientes SIN CONFIGURAR (si hay)
+  if (neutralClients.length > 0) {
+    html += `
+      <div class="section-divider-title">⚠️ Sin configurar pago (${neutralClients.length})</div>
+      <div class="clients-grid">
+        ${neutralClients.map(clientCardHtml).join('')}
+      </div>
+    `;
+  }
+  
   cont.innerHTML = html;
   
-  // Bind clicks
   cont.querySelectorAll('.client-card').forEach(card => card.addEventListener('click', () => {
     document.getElementById('statsView').style.display = 'none';
     openClient(card.dataset.id, card.dataset.trainer);
