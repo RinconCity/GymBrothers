@@ -14,6 +14,7 @@
   --color-text-primary: #111111; --color-text-secondary: #6E6E6E;
   --color-border: rgba(17,17,17,0.15); --color-border-strong: rgba(17,17,17,0.65);
   --color-danger: #E63946; --color-success: #2A9D8F; --color-wa: #25D366;
+  --color-warn: #F4A261;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; } html, body { height: 100%; }
 body { font-family: 'Inter', sans-serif; background: var(--color-bg-primary); color: var(--color-text-primary); overflow-x: hidden; }
@@ -58,6 +59,13 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 .dash-stat .num { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 2rem; line-height: 1; }
 .dash-stat .lbl { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--color-text-secondary); margin-top: 0.4rem; }
 
+.birthday-banner { background: linear-gradient(135deg, #FF2D8F 0%, #ff4f9f 100%); color: #fff; padding: 1.25rem 1.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; border-left: 4px solid #111; }
+.birthday-banner .info { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.birthday-banner .icon { font-size: 1.8rem; }
+.birthday-banner .text h3 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1rem; text-transform: uppercase; }
+.birthday-banner .text p { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; opacity: 0.95; }
+.birthday-banner .wa-btn { background: #128C7E; color: #fff; padding: 0.6rem 1rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; text-transform: uppercase; text-decoration: none; }
+
 .dashboard-toolbar { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; align-items: center; }
 .search-input { flex: 1; min-width: 200px; padding: 0.85rem 1.2rem; background: #fff; border: 1px solid var(--color-border); font-size: 0.9rem; outline: none; }
 .search-input:focus { border-color: var(--color-accent); }
@@ -69,6 +77,8 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 .broadcast-btn { padding: 0.85rem 1.5rem; background: var(--color-wa); color: #fff; border: 1px solid var(--color-wa); font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 500; display: inline-flex; align-items: center; gap: 0.6rem; }
 .broadcast-btn:hover { background: #128C7E; border-color: #128C7E; }
 .trainers-btn { padding: 0.85rem 1.5rem; background: #111; color: var(--color-accent); border: 1px solid var(--color-accent); font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 500; display: inline-flex; align-items: center; gap: 0.6rem; }
+.stats-btn { padding: 0.85rem 1.5rem; background: #fff; color: #111; border: 1px solid #111; font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 500; display: inline-flex; align-items: center; gap: 0.6rem; }
+.stats-btn:hover { background: #111; color: var(--color-accent); }
 
 .clients-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; }
 .client-card { background: #fff; border: 1px solid var(--color-border); padding: 1.5rem; cursor: pointer; display: flex; flex-direction: column; transition: all 0.3s; position: relative; }
@@ -82,6 +92,7 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 .client-card-goal { font-size: 0.82rem; color: var(--color-text-secondary); margin-bottom: 1rem; min-height: 2.4em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .client-card-meta { display: flex; justify-content: space-between; padding-top: 0.85rem; border-top: 1px solid var(--color-border); font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-transform: uppercase; color: var(--color-text-secondary); }
 .payment-alert { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--color-danger); color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; padding: 0.3rem 0.5rem; text-transform: uppercase; }
+.measure-alert { position: absolute; top: 2.2rem; right: 0.5rem; background: var(--color-warn); color: #111; font-family: 'IBM Plex Mono', monospace; font-size: 0.55rem; padding: 0.3rem 0.5rem; text-transform: uppercase; font-weight: 700; }
 .empty-state { grid-column: 1 / -1; text-align: center; padding: 5rem 2rem; border: 1px dashed var(--color-border-strong); background: rgba(255,255,255,0.5); }
 
 .client-detail { padding: 2rem 2rem 6rem; max-width: 1400px; margin: 0 auto; }
@@ -191,6 +202,23 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 .pay-total-banner .lbl { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; text-transform: uppercase; opacity: 0.8; }
 .pay-total-banner .amt { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 2rem; color: var(--color-accent); margin-top: 0.25rem; }
 
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.stat-card { background: #fff; border: 1px solid var(--color-border); padding: 1.25rem; }
+.stat-card .lbl { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 0.5rem; }
+.stat-card .num { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.6rem; color: var(--color-text-primary); }
+.stat-card .num.accent { color: var(--color-accent); }
+.stat-card .sub { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--color-text-secondary); margin-top: 0.25rem; }
+.bar-chart { display: flex; align-items: flex-end; gap: 4px; height: 120px; padding: 1rem 0; border-bottom: 1px solid var(--color-border); }
+.bar-chart .bar { flex: 1; background: var(--color-accent); min-height: 2px; position: relative; transition: opacity 0.3s; }
+.bar-chart .bar:hover { opacity: 0.7; }
+.bar-chart .bar .label { position: absolute; bottom: -1.5rem; left: 50%; transform: translateX(-50%); font-family: 'IBM Plex Mono', monospace; font-size: 0.55rem; color: var(--color-text-secondary); }
+.bar-chart-container { padding-bottom: 1.5rem; }
+.trainer-comparison-row { display: grid; grid-template-columns: 1fr 80px 100px 100px; gap: 1rem; padding: 0.75rem; border-bottom: 1px solid var(--color-border); align-items: center; }
+.trainer-comparison-row.header { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; text-transform: uppercase; color: var(--color-text-secondary); background: #fafafa; }
+.trainer-comparison-row .name { font-family: 'Montserrat', sans-serif; font-weight: 800; }
+.trainer-comparison-row .val { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; }
+.section-divider-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase; color: var(--color-accent); margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-border); }
+
 @media (max-width: 900px) {
   .topbar { padding: 1rem 1.25rem; flex-wrap: wrap; gap: 1rem; } .topbar-actions { gap: 0.5rem; }
   .user-badge span, .topbar-btn { padding: 0.5rem 0.65rem; font-size: 0.6rem; }
@@ -200,6 +228,7 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
   .client-detail { padding: 1.5rem 1.25rem 4rem; } .form-row { grid-template-columns: 1fr; }
   .modal-body { padding: 1.5rem; } .modal-foot { padding: 1rem 1.5rem; flex-direction: column-reverse; } .modal-foot .btn { width: 100%; }
   .routine-builder-row { grid-template-columns: 1fr 1fr; }
+  .trainer-comparison-row { grid-template-columns: 1fr 60px 80px 80px; gap: 0.5rem; font-size: 0.75rem; }
 }
 @media (max-width: 600px) { .clients-grid { grid-template-columns: 1fr; } .client-info-grid { grid-template-columns: 1fr; } }
 </style>
@@ -236,6 +265,7 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
   </header>
 
   <main class="dashboard" id="dashboardView">
+    <div id="birthdayBannerContainer"></div>
     <div class="dashboard-header">
       <div class="dashboard-title-block">
         <div class="label">Panel de control</div>
@@ -249,6 +279,7 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
     <div class="dashboard-toolbar">
       <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nombre o ID...">
       <select class="filter-select" id="trainerFilter" style="display:none;"></select>
+      <button class="stats-btn" id="statsBtn">Estadísticas</button>
       <button class="trainers-btn" id="trainersBtn" style="display:none;">Entrenadores</button>
       <button class="broadcast-btn" id="broadcastBtn">Aviso Masivo</button>
       <button class="pay-btn" id="payBtn">Cobros de la semana</button>
@@ -393,6 +424,15 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
   </div>
 </div>
 
+<!-- STATS MODAL -->
+<div class="modal-backdrop" id="statsModal">
+  <div class="modal">
+    <div class="modal-head"><h3 id="statsModalTitle">Estadísticas <span class="accent">del Gym</span></h3><button class="modal-close" data-close-modal="statsModal">×</button></div>
+    <div class="modal-body" id="statsModalBody"></div>
+    <div class="modal-foot"><button class="btn btn-secondary" data-close-modal="statsModal">Cerrar</button></div>
+  </div>
+</div>
+
 <!-- TRAINERS MODAL -->
 <div class="modal-backdrop" id="trainersModal">
   <div class="modal">
@@ -443,20 +483,11 @@ const TOKEN_P1 = 'github_pat_11BNJ3MTA0TbvdFemUcNH4_1FvCl7';
 const TOKEN_P2 = 'VvaIdtEh5aHFbhCesSDEc4PILsHSvxn3dcbHf5X47QSFYeRh5pi3H';
 const GIT_TOKEN = TOKEN_P1 + TOKEN_P2;
 
-// =====================================================================
-// CONFIGURACIÓN DE USUARIOS
-// =====================================================================
-// Para agregar un ADMINISTRADOR: copiá la línea de abajo, cambiá la clave 
-// (entre comillas) y el nombre. El id SIEMPRE debe ser 'admin'.
-// Para agregar un ENTRENADOR normal: hacé lo mismo pero con un id único 
-// (ej: 'amigo3', 'entrenador4', etc.).
-// =====================================================================
 const USERS = {
   'y28c1992Y@': { id: 'admin', name: 'YanDyNewMan' },
   'Ancla1234':  { id: 'amigo1', name: 'ANCLA' },
   'Alejandro1992@': { id: 'amigo2', name: 'Alejandro' }
 };
-// =====================================================================
 
 const EXERCISES = ['Press Banca', 'Sentadilla', 'Peso Muerto', 'Press Militar', 'Remo con Barra', 'Dominadas', 'Curl Bíceps', 'Extensión Tríceps', 'Elevaciones Laterales', 'Press Inclinado', 'Prensa de Piernas', 'Zancadas', 'Curl Femoral', 'Gemelos', 'Plancha Abdominal'];
 
@@ -484,17 +515,36 @@ function escHtml(s) { if(s==null) return ''; return String(s).replace(/&/g,'&amp
 function encB64(str) { return btoa(unescape(encodeURIComponent(str))); }
 function decB64(b64) { return decodeURIComponent(escape(atob(b64))); }
 
-// Devuelve entrenadores únicos por ID (evita duplicar admins si hay varios con id:'admin')
 function getUniqueTrainers() {
-  const seen = new Set();
-  const unique = [];
-  for (const u of Object.values(USERS)) {
-    if (!seen.has(u.id)) {
-      seen.add(u.id);
-      unique.push(u);
-    }
-  }
+  const seen = new Set(); const unique = [];
+  for (const u of Object.values(USERS)) { if (!seen.has(u.id)) { seen.add(u.id); unique.push(u); } }
   return unique;
+}
+
+// Devuelve los días que pasaron desde la última medición
+function daysSinceLastMeasurement(client) {
+  if (!client.lastDate) return 999;
+  const last = new Date(client.lastDate + 'T00:00:00');
+  const today = new Date();
+  return Math.floor((today - last) / (1000 * 60 * 60 * 24));
+}
+
+// Devuelve true si es el cumpleaños del cliente hoy
+function isBirthdayToday(birthdate) {
+  if (!birthdate) return false;
+  const today = new Date();
+  const bday = new Date(birthdate + 'T00:00:00');
+  return bday.getDate() === today.getDate() && bday.getMonth() === today.getMonth();
+}
+
+// Devuelve días hasta el próximo cumpleaños
+function daysUntilBirthday(birthdate) {
+  if (!birthdate) return 999;
+  const today = new Date();
+  const bday = new Date(birthdate + 'T00:00:00');
+  let nextBday = new Date(today.getFullYear(), bday.getMonth(), bday.getDate());
+  if (nextBday < today) nextBday.setFullYear(today.getFullYear() + 1);
+  return Math.ceil((nextBday - today) / (1000 * 60 * 60 * 24));
 }
 
 /* ============ TOAST & MODALS ============ */
@@ -515,59 +565,29 @@ async function apiDel(p, s, m) { const r=await fetch(`${API_BASE}${p}`, {method:
 
 /* ============ DATA & CACHE ============ */
 async function getIndex() {
-  clientsIndex = [];
-  setSync(true);
+  clientsIndex = []; setSync(true);
   try {
     if (isAdmin) {
-      // Admin fetches all UNIQUE trainers' indexes (deduped by ID)
       for (const t of getUniqueTrainers()) {
-        try {
-          const f = await apiGet(`clients/${t.id}/index.json`);
-          if (f) {
-            const arr = JSON.parse(decB64(f.content));
-            arr.forEach(c => { c.trainerId = t.id; c.trainerName = t.name; });
-            clientsIndex = clientsIndex.concat(arr);
-          }
-        } catch(e) {}
+        try { const f = await apiGet(`clients/${t.id}/index.json`); if (f) { const arr = JSON.parse(decB64(f.content)); arr.forEach(c => { c.trainerId = t.id; c.trainerName = t.name; }); clientsIndex = clientsIndex.concat(arr); } } catch(e) {}
       }
     } else {
       const f = await apiGet(`clients/${currentUserId}/index.json`);
-      if (f) {
-        clientsIndex = JSON.parse(decB64(f.content));
-        clientsIndex.forEach(c => { c.trainerId = currentUserId; c.trainerName = currentUserName; });
-      }
+      if (f) { clientsIndex = JSON.parse(decB64(f.content)); clientsIndex.forEach(c => { c.trainerId = currentUserId; c.trainerName = currentUserName; }); }
     }
   } catch(e) { console.error(e); }
-  finally { setSync(false); renderGrid(); }
+  finally { setSync(false); renderGrid(); renderBirthdayBanner(); }
 }
 
 async function saveIndex(targetTrainerId) {
   const tId = targetTrainerId || currentUserId;
   const trainerClients = clientsIndex.filter(c => c.trainerId === tId).map(({trainerId, trainerName, ...rest}) => rest);
-  const p = `clients/${tId}/index.json`;
-  const e = await apiGet(p);
+  const p = `clients/${tId}/index.json`; const e = await apiGet(p);
   await apiPut(p, trainerClients, e ? e.sha : null, `Idx Update ${tId}`);
 }
-
-async function getClient(id, trainerId) {
-  const tId = trainerId || currentUserId;
-  const f = await apiGet(`clients/${tId}/${id}.json`);
-  return f ? JSON.parse(decB64(f.content)) : null;
-}
-
-async function saveClientData(client, trainerId) {
-  const tId = trainerId || currentUserId;
-  const p = `clients/${tId}/${client.id}.json`;
-  const e = await apiGet(p);
-  await apiPut(p, client, e ? e.sha : null, `Save ${client.name}`);
-}
-
-async function deleteClientData(id, trainerId) {
-  const tId = trainerId || currentUserId;
-  const p = `clients/${tId}/${id}.json`;
-  const e = await apiGet(p);
-  if (e) await apiDel(p, e.sha, `Del ${id}`);
-}
+async function getClient(id, trainerId) { const tId = trainerId || currentUserId; const f = await apiGet(`clients/${tId}/${id}.json`); return f ? JSON.parse(decB64(f.content)) : null; }
+async function saveClientData(client, trainerId) { const tId = trainerId || currentUserId; const p = `clients/${tId}/${client.id}.json`; const e = await apiGet(p); await apiPut(p, client, e ? e.sha : null, `Save ${client.name}`); }
+async function deleteClientData(id, trainerId) { const tId = trainerId || currentUserId; const p = `clients/${tId}/${id}.json`; const e = await apiGet(p); if (e) await apiDel(p, e.sha, `Del ${id}`); }
 
 /* ============ TRAINER PROFILE ============ */
 async function loadTrainer() { try { const f=await apiGet(`trainers/${currentUserId}.json`); if(f) trainerProfile=JSON.parse(decB64(f.content)); else trainerProfile={name:currentUserName, photo:''}; } catch(e) { trainerProfile={name:currentUserName, photo:''}; } updateBadge(); }
@@ -583,18 +603,14 @@ async function showApp() {
   isAdmin = currentUserId === 'admin';
   document.getElementById('loginScreen').classList.add('is-hidden');
   document.getElementById('app').classList.add('is-active');
-  
   if (isAdmin) {
     document.getElementById('trainerFilter').style.display = 'block';
     document.getElementById('trainersBtn').style.display = 'inline-flex';
     document.getElementById('trainerAssignRow').style.display = 'grid';
-    
-    // Use unique trainers for dropdowns
     const opts = getUniqueTrainers().map(u => `<option value="${u.id}">${u.name}</option>`).join('');
     document.getElementById('trainerFilter').innerHTML = `<option value="all">Todos los entrenadores</option>` + opts;
     document.getElementById('clientTrainerId').innerHTML = opts;
   }
-  
   await loadTrainer();
   await getIndex();
 }
@@ -606,33 +622,126 @@ function renderGrid() {
   const grid = document.getElementById('clientsGrid');
   const s = document.getElementById('searchInput').value.toLowerCase().trim();
   const filterVal = isAdmin ? document.getElementById('trainerFilter').value : currentUserId;
-  
   document.getElementById('statTotal').textContent = clientsIndex.length;
   const wAgo = new Date(Date.now() - 7*24*60*60*1000); let wM=0; clientsIndex.forEach(c => { if(c.lastDate && new Date(c.lastDate)>=wAgo) wM++; }); document.getElementById('statWeek').textContent = wM;
-  
   let f = clientsIndex; 
   if (isAdmin && filterVal !== 'all') f = f.filter(c => c.trainerId === filterVal);
   if (s) f = f.filter(c => (c.name&&c.name.toLowerCase().includes(s)) || (c.shortId&&c.shortId.includes(s)));
-  
   if(f.length===0) { grid.innerHTML = `<div class="empty-state"><h3>${clientsIndex.length===0?'Todavía no hay clientes':'Sin resultados'}</h3></div>`; return; }
-  
-  const now = new Date();
-  const today = now.getDate();
-  
+  const now = new Date(); const today = now.getDate();
   grid.innerHTML = f.map(c => {
     let pay = '';
     if(c.paymentStatus === 'Vencido') pay = '<div class="payment-alert">VENCIDA</div>';
     else if(c.paymentDay) { const pDay = parseInt(c.paymentDay); if(pDay >= today) { const diff = pDay - today; if(diff <= 3) pay = `<div class="payment-alert" style="background:var(--color-success);">VENCE ${diff}D</div>`; } else if(c.paymentStatus === 'Pendiente') pay = '<div class="payment-alert">VENCIDA</div>'; }
+    // Alerta de medición pendiente (>30 días)
+    let measureAlert = '';
+    const daysSince = daysSinceLastMeasurement(c);
+    if (daysSince > 30) measureAlert = '<div class="measure-alert">FALTA MEDIR</div>';
     const d = c.firstWeight&&c.lastWeight ? (c.lastWeight-c.firstWeight) : null;
     let pHtml = '<span>SIN MED</span>'; if(c.measurementsCount===1) pHtml='<span>1 MED</span>'; else if(d!=null) { if(d>0) pHtml=`<span style="color:var(--color-success)">▲ ${d.toFixed(1)}kg</span>`; else if(d<0) pHtml=`<span style="color:var(--color-danger)">▼ ${Math.abs(d).toFixed(1)}kg</span>`; else pHtml='<span>—</span>'; }
     const ph = c.photo ? `<img src="${c.photo}">` : `<div class="placeholder">${getInit(c.name)}</div>`;
     const tLabel = isAdmin ? `<div class="client-card-trainer">${c.trainerName||'S/D'}</div>` : '';
-    return `<div class="client-card" data-id="${c.id}" data-trainer="${c.trainerId}"><div class="client-card-photo">${ph}<div class="client-card-id">ID: ${c.shortId||'--------'}</div>${pay}</div><div class="client-card-name">${escHtml(c.name||'S/N')}</div>${tLabel}<div class="client-card-goal">${escHtml(c.goal||'')}</div><div class="client-card-meta"><span>${c.measurementsCount||0} meds</span>${pHtml}</div></div>`;
+    return `<div class="client-card" data-id="${c.id}" data-trainer="${c.trainerId}"><div class="client-card-photo">${ph}<div class="client-card-id">ID: ${c.shortId||'--------'}</div>${pay}${measureAlert}</div><div class="client-card-name">${escHtml(c.name||'S/N')}</div>${tLabel}<div class="client-card-goal">${escHtml(c.goal||'')}</div><div class="client-card-meta"><span>${c.measurementsCount||0} meds</span>${pHtml}</div></div>`;
   }).join('');
   grid.querySelectorAll('.client-card').forEach(card => card.addEventListener('click', () => openClient(card.dataset.id, card.dataset.trainer)));
 }
 document.getElementById('searchInput').addEventListener('input', renderGrid);
 if (isAdmin) document.getElementById('trainerFilter').addEventListener('change', renderGrid);
+
+/* ============ BIRTHDAY BANNER ============ */
+function renderBirthdayBanner() {
+  const container = document.getElementById('birthdayBannerContainer');
+  const birthdaysToday = clientsIndex.filter(c => isBirthdayToday(c.birthdate));
+  if (birthdaysToday.length === 0) { container.innerHTML = ''; return; }
+  
+  const names = birthdaysToday.map(c => c.name).join(', ');
+  const phone = birthdaysToday.find(c => c.phone)?.phone;
+  
+  let waBtnHtml = '';
+  if (phone) {
+    const msg = `🎂 ¡Feliz cumpleaños! Que tengas un día espectacular, lleno de salud y logros. ¡A seguir rompiéndola en el gym! 💪💥`;
+    waBtnHtml = `<a href="https://wa.me/${phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(msg)}" target="_blank" class="wa-btn">Felicitarte por WhatsApp</a>`;
+  }
+  
+  container.innerHTML = `<div class="birthday-banner"><div class="info"><div class="icon">🎂</div><div class="text"><h3>¡Hoy es cumpleaños!</h3><p>${escHtml(names)}</p></div></div>${waBtnHtml}</div>`;
+}
+
+/* ============ STATS MODAL ============ */
+document.getElementById('statsBtn').addEventListener('click', () => {
+  // Para admin: usa todos los clientes. Para trainer: solo los suyos.
+  const data = isAdmin ? clientsIndex : clientsIndex.filter(c => c.trainerId === currentUserId);
+  
+  document.getElementById('statsModalTitle').innerHTML = isAdmin ? 'Estadísticas <span class="accent">del Gym</span>' : 'Mis <span class="accent">Estadísticas</span>';
+  
+  const totalClients = data.length;
+  const totalRevenue = data.reduce((sum, c) => sum + (c.paymentAmount ? parseFloat(c.paymentAmount) : 0), 0);
+  
+  const now = new Date();
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+  const newThisMonth = data.filter(c => {
+    if (!c.createdAt) return false;
+    const cd = new Date(c.createdAt);
+    return cd.getMonth() === thisMonth && cd.getFullYear() === thisYear;
+  }).length;
+  
+  const pendingMeasurements = data.filter(c => daysSinceLastMeasurement(c) > 30).length;
+  const overduePayments = data.filter(c => c.paymentStatus === 'Vencido').length;
+  
+  // Distribución de días de pago (1-31)
+  const dayDistribution = new Array(31).fill(0);
+  data.forEach(c => { if (c.paymentDay) { const d = parseInt(c.paymentDay); if (d >= 1 && d <= 31) dayDistribution[d-1]++; } });
+  const maxDayCount = Math.max(...dayDistribution, 1);
+  
+  // Cumpleaños próximos (7 días)
+  const upcomingBdays = data.filter(c => c.birthdate && daysUntilBirthday(c.birthdate) <= 7).sort((a,b) => daysUntilBirthday(a.birthdate) - daysUntilBirthday(b.birthdate));
+  
+  let html = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="lbl">Clientes Activos</div><div class="num">${totalClients}</div></div>
+      <div class="stat-card"><div class="lbl">Facturación Mensual</div><div class="num accent">${fmtMoney(totalRevenue)}</div></div>
+      <div class="stat-card"><div class="lbl">Nuevos este mes</div><div class="num">${newThisMonth}</div></div>
+      <div class="stat-card"><div class="lbl">Cuotas Vencidas</div><div class="num" style="color:var(--color-danger)">${overduePayments}</div></div>
+      <div class="stat-card"><div class="lbl">Falta Medir</div><div class="num" style="color:var(--color-warn)">${pendingMeasurements}</div></div>
+    </div>
+    
+    <div class="section-divider-title">Distribución de días de pago</div>
+    <div class="bar-chart-container">
+      <div class="bar-chart">
+        ${dayDistribution.map((count, i) => count > 0 ? `<div class="bar" style="height:${(count/maxDayCount)*100}%" title="Día ${i+1}: ${count} clientes"><div class="label">${i+1}</div></div>` : `<div class="bar" style="height:2px; background:transparent;"><div class="label">${i+1}</div></div>`).join('')}
+      </div>
+    </div>
+  `;
+  
+  if (upcomingBdays.length > 0) {
+    html += `
+      <div class="section-divider-title">Próximos cumpleaños (7 días)</div>
+      ${upcomingBdays.map(c => {
+        const d = daysUntilBirthday(c.birthdate);
+        const txt = d === 0 ? '🎂 Hoy' : (d === 1 ? 'Mañana' : `En ${d} días`);
+        return `<div class="pay-list-item"><div class="info"><h4>${escHtml(c.name)}</h4><p>${txt} - ${fmtDate(c.birthdate)}</p></div></div>`;
+      }).join('')}
+    `;
+  }
+  
+  // Comparativa de entrenadores (solo admin)
+  if (isAdmin) {
+    html += `<div class="section-divider-title">Comparativa de Entrenadores</div>
+      <div class="trainer-comparison-row header">
+        <div>Entrenador</div><div>Clientes</div><div>Vencidas</div><div>Facturación</div>
+      </div>
+      ${getUniqueTrainers().map(t => {
+        const tClients = data.filter(c => c.trainerId === t.id);
+        const tRev = tClients.reduce((sum, c) => sum + (c.paymentAmount ? parseFloat(c.paymentAmount) : 0), 0);
+        const tOver = tClients.filter(c => c.paymentStatus === 'Vencido').length;
+        return `<div class="trainer-comparison-row"><div class="name">${t.name}</div><div class="val">${tClients.length}</div><div class="val" style="color:${tOver>0?'var(--color-danger)':'inherit'}">${tOver}</div><div class="val">${fmtMoney(tRev)}</div></div>`;
+      }).join('')}
+    `;
+  }
+  
+  document.getElementById('statsModalBody').innerHTML = html;
+  openModal('statsModal');
+});
 
 /* ============ TRAINERS MODAL ============ */
 document.getElementById('trainersBtn').addEventListener('click', () => {
@@ -697,7 +806,6 @@ function openClientForm(id=null, trainerId=null) {
   const cont = document.getElementById('routineBuilderContainer');
   cont.innerHTML = '';
   currentClientTrainerId = trainerId || currentUserId;
-  
   if(id) {
     const c = clientsIndex.find(x => x.id === id && x.trainerId === currentClientTrainerId); if(!c) return;
     document.getElementById('clientModalTitle').innerHTML = 'Editar <span class="accent">cliente</span>';
@@ -739,24 +847,16 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
   const id = document.getElementById('clientId').value;
   const name = document.getElementById('clientName').value.trim();
   if(!name) { showToast('El nombre es obligatorio', 'error'); return; }
-  
   const assignedTrainerId = isAdmin ? document.getElementById('clientTrainerId').value : currentUserId;
   const b = document.getElementById('saveClientBtn'); b.disabled=true; b.innerHTML='<div class="spinner"></div>'; setSync(true);
-  
   const rRows = document.querySelectorAll('.routine-builder-row');
   routineData = [];
   rRows.forEach(r => { const inp=r.querySelectorAll('input, select'); if(inp[1].value) routineData.push({day:inp[0].value, ex:inp[1].value, sets:inp[2].value, reps:inp[3].value}); });
-
   try {
     let cd;
     const oldTrainerId = currentClientTrainerId;
-    
-    if (id) { 
-      cd = await getClient(id, oldTrainerId); 
-    } else { 
-      cd = { id: uid(), shortId: genShortId(), photo: '', measurements: [], createdAt: new Date().toISOString() }; 
-    }
-    
+    if (id) { cd = await getClient(id, oldTrainerId); } 
+    else { cd = { id: uid(), shortId: genShortId(), photo: '', measurements: [], createdAt: new Date().toISOString() }; }
     cd.name = name;
     cd.birthdate = document.getElementById('clientBirthdate').value;
     cd.phone = document.getElementById('clientPhone').value.trim();
@@ -770,29 +870,22 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
     cd.routine = routineData;
     cd.diet = document.getElementById('clientDiet').value.trim();
     cd.notes = document.getElementById('clientNotes').value.trim();
-
-    // If Admin moved the client to a different trainer
     if (isAdmin && id && oldTrainerId !== assignedTrainerId) {
       await deleteClientData(id, oldTrainerId);
       clientsIndex = clientsIndex.filter(c => !(c.id === id && c.trainerId === oldTrainerId));
       await saveIndex(oldTrainerId);
     }
-
     await saveClientData(cd, assignedTrainerId);
-    
     const tName = getUniqueTrainers().find(t => t.id === assignedTrainerId)?.name || 'Admin';
     cd.trainerId = assignedTrainerId;
     cd.trainerName = tName;
     const entry = { ...cd, measurementsCount: cd.measurements ? cd.measurements.length : 0, lastDate: cd.measurements && cd.measurements.length > 0 ? [...cd.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0].date : null, firstWeight: cd.measurements && cd.measurements.length > 0 ? [...cd.measurements].sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0].weight : null, lastWeight: cd.measurements && cd.measurements.length > 0 ? [...cd.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0].weight : null };
-    
     const idx = clientsIndex.findIndex(c => c.id === cd.id && c.trainerId === assignedTrainerId);
     if(idx > -1) clientsIndex[idx] = entry; else clientsIndex.push(entry);
-    
     await saveIndex(assignedTrainerId);
-    
     showToast(id ? 'Cliente actualizado' : 'Cliente agregado');
     closeModal('clientModal');
-    if(id === currentClientId) await renderClientDetail(id, assignedTrainerId); else renderGrid();
+    if(id === currentClientId) await renderClientDetail(id, assignedTrainerId); else { renderGrid(); renderBirthdayBanner(); }
   } catch(e) { showToast('Error al guardar', 'error'); } finally { b.disabled=false; b.innerHTML='Guardar cliente'; setSync(false); }
 });
 
@@ -812,6 +905,7 @@ async function backToDash() {
   document.getElementById('dashboardView').style.display = 'block';
   document.getElementById('topbarBrand').classList.remove('has-back');
   renderGrid();
+  renderBirthdayBanner();
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 document.getElementById('clientBack').addEventListener('click', backToDash);
@@ -832,36 +926,28 @@ async function renderClientDetail(id, trainerId) {
   const ph = c.photo ? `<img src="${c.photo}">` : `<div class="placeholder">${getInit(c.name)}</div>`;
   const ms = (c.measurements || []).slice().sort((a,b) => (b.date||'').localeCompare(a.date||''));
   const last = ms[0] || null; const first = ms[ms.length-1] || null; const prev = ms[1] || null;
-
   function dCard(l, lv, fv, u, inv=false) {
     if(lv==null) return `<div class="progress-card"><div class="pc-label">${l}</div><div class="pc-current">—</div><div class="pc-delta none">SIN DATOS</div></div>`;
     let dH = '<div class="pc-delta none">PRIMERA</div>';
     if(fv!=null && fv!==lv) { const d=parseFloat(lv)-parseFloat(fv); if(!isNaN(d)) { let cl=''; let a=''; if(d>0){a='▲';cl=inv?'bad-up':'up';} else if(d<0){a='▼';cl=inv?'bad-down':'down';} else {cl='flat';a='—';} dH=`<div class="pc-delta ${cl}">${a} ${Math.abs(d).toFixed(1)} ${u}</div>`; } }
     return `<div class="progress-card"><div class="pc-label">${l}</div><div class="pc-current">${parseFloat(lv).toFixed(1)}<span class="unit">${u}</span></div>${dH}</div>`;
   }
-
   const ascMs = ms.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
   const wChart = genChartSVG(ascMs, 'weight', '#FF2D8F');
   const mChart = genChartSVG(ascMs, 'muscle', '#2A9D8F');
   let cHtml = '<div class="chart-empty">Se necesitan al menos 2 mediciones.</div>';
   if(wChart || mChart) cHtml = `<div style="position:relative; width:100%; height:200px;">${wChart||''}${mChart||''}</div><div class="chart-legend">${wChart?'<span><span class="dot" style="background:#FF2D8F;"></span>Peso</span>':''}${mChart?'<span><span class="dot" style="background:#2A9D8F;"></span>Músculo</span>':''}</div>`;
-
   const pPhotos = ms.filter(m => m.photo);
   let pHtml = '<p class="notes-empty">Todavía no hay fotos.</p>';
   if(pPhotos.length > 0) pHtml = `<div class="photos-grid">${pPhotos.map(m => `<div class="photo-card"><img src="${m.photo}"><div class="photo-date">${fmtDate(m.date)} - ${m.weight||'—'}kg</div></div>`).join('')}</div>`;
-
   let waHtml = '';
   if(c.phone) { let msg = `Hola ${c.name}! Tu resumen de hoy:\n\n`; if(last) { msg += `⚖️ Peso: ${last.weight}kg\n`; if(prev&&last.weight&&prev.weight) { const diff=(parseFloat(last.weight)-parseFloat(prev.weight)).toFixed(1); msg += `📊 Cambio: ${diff>0?'+':''}${diff}kg\n`; } if(last.bodyFat) msg += `📉 % Grasa: ${last.bodyFat}%\n`; } msg += `\n¡A seguir con todo! 💥`; waHtml = `<a href="https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(msg)}" target="_blank" class="action-btn wa">WhatsApp</a>`; }
-
   const portalLink = `${window.location.origin}${window.location.pathname}?portal=${trainerId}&id=${c.shortId}`;
   const tLabel = isAdmin ? `<div class="client-card-trainer" style="margin-bottom:1rem; text-align:left;">Entrenador: ${c.trainerName || 'N/A'}</div>` : '';
-  
   let rHtml = '<p class="notes-empty">Sin rutina asignada.</p>';
   if(c.routine && c.routine.length > 0) rHtml = `<table class="routine-table"><thead><tr><th>Día</th><th>Ejercicio</th><th>Series</th><th>Reps</th></tr></thead><tbody>${c.routine.map(r => `<tr><td>${r.day||''}</td><td>${r.ex||''}</td><td>${r.sets||''}</td><td>${r.reps||''}</td></tr>`).join('')}</tbody></table>`;
-
   let tHtml = '<div class="measurements-empty">Sin mediciones.</div>';
   if(ms.length > 0) tHtml = `<div class="measurements-wrap"><table class="measurements-table"><thead><tr><th>Fecha</th><th>Peso</th><th>%G</th><th>%M</th><th>IMC</th><th>Pecho</th><th>Cintura</th><th>Brazo I</th><th>Muslo I</th><th></th></tr></thead><tbody>${ms.map(m => `<tr><td class="date-cell">${fmtDate(m.date)}</td><td>${m.weight?parseFloat(m.weight).toFixed(1)+'kg':'—'}</td><td>${m.bodyFat||'—'}</td><td>${m.muscle||'—'}</td><td>${calcIMC(m.weight,c.height)||'—'}</td><td>${m.chest||'—'}</td><td>${m.waist||'—'}</td><td>${m.armL||'—'}</td><td>${m.thighL||'—'}</td><td><button class="delete-measurement" data-mid="${m.id}">X</button></td></tr>`).join('')}</tbody></table></div>`;
-
   cont.innerHTML = `
     <div class="client-header">
       <div class="client-photo-wrap">${ph}<label class="client-photo-edit">Cambiar foto<input type="file" id="photoInput" accept="image/*"></label></div>
@@ -893,7 +979,6 @@ async function renderClientDetail(id, trainerId) {
     <section class="notes-section"><div class="label">Rutina</div>${rHtml}</section>
     <section class="notes-section"><div class="label">Dieta</div><div class="notes-content ${!c.diet?'notes-empty':''}">${c.diet?escHtml(c.diet):'Sin dieta.'}</div></section>
   `;
-  
   document.getElementById('addMBtn').addEventListener('click', () => openMForm(c.id, trainerId));
   document.getElementById('editClientBtn').addEventListener('click', () => openClientForm(c.id, trainerId));
   document.getElementById('sendProfileBtn').addEventListener('click', () => { 
@@ -951,9 +1036,9 @@ async function initPortal(trainerId, shortId) {
   document.getElementById('logoutBtn').textContent = 'Salir';
   document.getElementById('payBtn').style.display = 'none';
   document.getElementById('broadcastBtn').style.display = 'none';
+  document.getElementById('statsBtn').style.display = 'none';
   document.getElementById('addClientBtn').style.display = 'none';
   document.getElementById('searchInput').style.display = 'none';
-  
   setSync(true);
   await getIndex();
   const cInfo = clientsIndex.find(c => c.shortId === shortId);
@@ -963,7 +1048,6 @@ async function initPortal(trainerId, shortId) {
   document.getElementById('dashboardView').style.display = 'none';
   document.getElementById('clientView').style.display = 'block';
   await renderClientDetail(cInfo.id, currentClientTrainerId);
-  
   setTimeout(() => {
     document.querySelectorAll('#clientContent .client-actions').forEach(div => div.style.display = 'none');
     document.querySelectorAll('#clientContent .delete-measurement').forEach(btn => btn.style.display = 'none');
