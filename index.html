@@ -443,11 +443,20 @@ const TOKEN_P1 = 'github_pat_11BNJ3MTA0TbvdFemUcNH4_1FvCl7';
 const TOKEN_P2 = 'VvaIdtEh5aHFbhCesSDEc4PILsHSvxn3dcbHf5X47QSFYeRh5pi3H';
 const GIT_TOKEN = TOKEN_P1 + TOKEN_P2;
 
+// =====================================================================
+// CONFIGURACIÓN DE USUARIOS
+// =====================================================================
+// Para agregar un ADMINISTRADOR: copiá la línea de abajo, cambiá la clave 
+// (entre comillas) y el nombre. El id SIEMPRE debe ser 'admin'.
+// Para agregar un ENTRENADOR normal: hacé lo mismo pero con un id único 
+// (ej: 'amigo3', 'entrenador4', etc.).
+// =====================================================================
 const USERS = {
   'y28c1992Y@': { id: 'admin', name: 'YanDyNewMan' },
   'Ancla1234':  { id: 'amigo1', name: 'ANCLA' },
   'Alejandro1992@': { id: 'amigo2', name: 'Alejandro' }
 };
+// =====================================================================
 
 const EXERCISES = ['Press Banca', 'Sentadilla', 'Peso Muerto', 'Press Militar', 'Remo con Barra', 'Dominadas', 'Curl Bíceps', 'Extensión Tríceps', 'Elevaciones Laterales', 'Press Inclinado', 'Prensa de Piernas', 'Zancadas', 'Curl Femoral', 'Gemelos', 'Plancha Abdominal'];
 
@@ -456,7 +465,7 @@ let currentUserId = null;
 let currentUserName = '';
 let clientsIndex = [];
 let currentClientId = null;
-let currentClientTrainerId = null; // To track which trainer's file we need to edit
+let currentClientTrainerId = null;
 let confirmCallback = null;
 let trainerProfile = { name: '', photo: '' };
 let currentMPhoto = '';
@@ -474,6 +483,19 @@ function getInit(n) { if(!n) return '?'; const p=n.trim().split(' '); return p.l
 function escHtml(s) { if(s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function encB64(str) { return btoa(unescape(encodeURIComponent(str))); }
 function decB64(b64) { return decodeURIComponent(escape(atob(b64))); }
+
+// Devuelve entrenadores únicos por ID (evita duplicar admins si hay varios con id:'admin')
+function getUniqueTrainers() {
+  const seen = new Set();
+  const unique = [];
+  for (const u of Object.values(USERS)) {
+    if (!seen.has(u.id)) {
+      seen.add(u.id);
+      unique.push(u);
+    }
+  }
+  return unique;
+}
 
 /* ============ TOAST & MODALS ============ */
 let tT; function showToast(m, t='success', d=2800) { const el=document.getElementById('toast'); el.innerHTML=(t==='syncing'?'<div class="spinner"></div>':'')+'<span>'+m+'</span>'; el.className='toast is-visible '+(t==='syncing'?'':t); clearTimeout(tT); if(t!=='syncing') tT=setTimeout(()=>el.classList.remove('is-visible'), d); }
@@ -497,8 +519,8 @@ async function getIndex() {
   setSync(true);
   try {
     if (isAdmin) {
-      // Admin fetches all trainers' indexes
-      for (const t of Object.values(USERS)) {
+      // Admin fetches all UNIQUE trainers' indexes (deduped by ID)
+      for (const t of getUniqueTrainers()) {
         try {
           const f = await apiGet(`clients/${t.id}/index.json`);
           if (f) {
@@ -567,7 +589,8 @@ async function showApp() {
     document.getElementById('trainersBtn').style.display = 'inline-flex';
     document.getElementById('trainerAssignRow').style.display = 'grid';
     
-    const opts = Object.values(USERS).map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+    // Use unique trainers for dropdowns
+    const opts = getUniqueTrainers().map(u => `<option value="${u.id}">${u.name}</option>`).join('');
     document.getElementById('trainerFilter').innerHTML = `<option value="all">Todos los entrenadores</option>` + opts;
     document.getElementById('clientTrainerId').innerHTML = opts;
   }
@@ -614,7 +637,7 @@ if (isAdmin) document.getElementById('trainerFilter').addEventListener('change',
 /* ============ TRAINERS MODAL ============ */
 document.getElementById('trainersBtn').addEventListener('click', () => {
   const body = document.getElementById('trainersModalBody');
-  body.innerHTML = Object.values(USERS).map(t => {
+  body.innerHTML = getUniqueTrainers().map(t => {
     const tClients = clientsIndex.filter(c => c.trainerId === t.id);
     const totalRevenue = tClients.reduce((sum, c) => sum + (c.paymentAmount ? parseFloat(c.paymentAmount) : 0), 0);
     const overdueCount = tClients.filter(c => c.paymentStatus === 'Vencido').length;
@@ -757,8 +780,9 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
 
     await saveClientData(cd, assignedTrainerId);
     
+    const tName = getUniqueTrainers().find(t => t.id === assignedTrainerId)?.name || 'Admin';
     cd.trainerId = assignedTrainerId;
-    cd.trainerName = USERS[Object.keys(USERS).find(k => USERS[k].id === assignedTrainerId)].name;
+    cd.trainerName = tName;
     const entry = { ...cd, measurementsCount: cd.measurements ? cd.measurements.length : 0, lastDate: cd.measurements && cd.measurements.length > 0 ? [...cd.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0].date : null, firstWeight: cd.measurements && cd.measurements.length > 0 ? [...cd.measurements].sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0].weight : null, lastWeight: cd.measurements && cd.measurements.length > 0 ? [...cd.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0].weight : null };
     
     const idx = clientsIndex.findIndex(c => c.id === cd.id && c.trainerId === assignedTrainerId);
@@ -919,7 +943,7 @@ document.getElementById('saveMeasurementBtn').addEventListener('click', async ()
 
 /* ============ PORTAL LOGIC ============ */
 async function initPortal(trainerId, shortId) {
-  gitToken = GIT_TOKEN; currentUserId = trainerId; // Override session for portal
+  gitToken = GIT_TOKEN; currentUserId = trainerId;
   document.getElementById('loginScreen').classList.add('is-hidden');
   document.getElementById('app').classList.add('is-active');
   document.getElementById('topbarBrand').innerHTML = 'Gym<span>·</span>Brothers <span style="font-size:0.7rem; color:var(--color-text-secondary); margin-left:1rem;">Portal del Cliente</span>';
@@ -931,7 +955,7 @@ async function initPortal(trainerId, shortId) {
   document.getElementById('searchInput').style.display = 'none';
   
   setSync(true);
-  await getIndex(); // Loads index for the specified trainerId
+  await getIndex();
   const cInfo = clientsIndex.find(c => c.shortId === shortId);
   if(!cInfo) { document.getElementById('clientsGrid').innerHTML = '<div class="empty-state"><h3>Cliente no encontrado</h3></div>'; setSync(false); return; }
   currentClientId = cInfo.id;
