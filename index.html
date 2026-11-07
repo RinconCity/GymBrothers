@@ -49,6 +49,9 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 .topbar-btn { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase; color: rgba(255,255,255,0.7); padding: 0.6rem 0.9rem; border: 1px solid rgba(255,255,255,0.15); }
 .topbar-btn:hover { border-color: var(--color-accent); color: var(--color-accent); } .topbar-btn.is-danger:hover { border-color: var(--color-danger); color: var(--color-danger); }
 
+.offline-banner { background: var(--color-warn); color: #111; padding: 0.6rem 1.5rem; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase; font-weight: 600; display: none; }
+.offline-banner.is-visible { display: block; }
+
 .dashboard { padding: 3rem 2rem 6rem; max-width: 1400px; margin: 0 auto; }
 .dashboard-header { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 3rem; }
 .dashboard-title-block .label { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--color-text-secondary); display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
@@ -230,6 +233,15 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 
 .form-actions-bar { position: sticky; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--color-border); padding: 1.25rem 0; display: flex; justify-content: flex-end; gap: 0.75rem; z-index: 10; margin-top: 2rem; }
 
+.photo-upload-section { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; margin-bottom: 2rem; }
+.photo-preview-circle { width: 140px; height: 140px; border-radius: 50%; background: #f0f0f0; border: 2px dashed var(--color-border-strong); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+.photo-preview-circle img { width: 100%; height: 100%; object-fit: cover; }
+.photo-preview-circle .placeholder-text { color: var(--color-text-secondary); font-size: 0.8rem; font-family: 'IBM Plex Mono', monospace; text-align: center; }
+.photo-btns { display: flex; gap: 0.5rem; }
+.photo-btn-label { padding: 0.5rem 1rem; background: #fff; border: 1px solid var(--color-border-strong); cursor: pointer; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; text-transform: uppercase; display: inline-flex; align-items: center; gap: 0.4rem; transition: all 0.2s; }
+.photo-btn-label:hover { border-color: var(--color-accent); color: var(--color-accent); }
+.photo-btn-label input { display: none; }
+
 @media (max-width: 900px) {
   .topbar { padding: 1rem 1.25rem; flex-wrap: wrap; gap: 1rem; } .topbar-actions { gap: 0.5rem; }
   .user-badge span, .topbar-btn { padding: 0.5rem 0.65rem; font-size: 0.6rem; }
@@ -273,6 +285,10 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
       <button class="topbar-btn is-danger" id="logoutBtn">Salir</button>
     </div>
   </header>
+
+  <div class="offline-banner" id="offlineBanner">
+    <span id="offlineBannerText">Sin conexión - Los cambios se guardan localmente</span>
+  </div>
 
   <main class="dashboard" id="dashboardView">
     <div id="birthdayBannerContainer"></div>
@@ -441,7 +457,6 @@ const USERS = {
 
 const EXERCISES = ['Press Banca', 'Sentadilla', 'Peso Muerto', 'Press Militar', 'Remo con Barra', 'Dominadas', 'Curl Bíceps', 'Extensión Tríceps', 'Elevaciones Laterales', 'Press Inclinado', 'Prensa de Piernas', 'Zancadas', 'Curl Femoral', 'Gemelos', 'Plancha Abdominal'];
 const WEEKDAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-// Generar opciones del 1 al 31 para día de pago
 const PAY_DAYS = Array.from({length: 31}, (_, i) => i + 1);
 
 let gitToken = GIT_TOKEN;
@@ -457,6 +472,8 @@ let routineData = [];
 let isAdmin = false;
 let waFilter = 'all';
 let waTrainerFilterVal = 'all';
+let clientFormPhoto = ''; // Foto del formulario de cliente
+let pendingSync = []; // Cola de sincronización offline
 
 /* ============ UTILS ============ */
 function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 9); }
@@ -508,6 +525,81 @@ function getPaymentStatus(client) {
   return 'paid';
 }
 
+/* ============ OFFLINE SYNC ============ */
+function loadPendingSync() {
+  try { pendingSync = JSON.parse(localStorage.getItem('gb_pending_sync') || '[]'); } catch(e) { pendingSync = []; }
+}
+function savePendingSync() {
+  localStorage.setItem('gb_pending_sync', JSON.stringify(pendingSync));
+  updateOfflineBanner();
+}
+
+function queueOp(op) {
+  // Deduplicar: si hay una operación del mismo tipo para el mismo target, reemplazarla
+  pendingSync = pendingSync.filter(p => {
+    if (op.type === 'saveIndex' && p.type === 'saveIndex' && p.trainerId === op.trainerId) return false;
+    if (op.type === 'saveClient' && p.type === 'saveClient' && p.clientData.id === op.clientData.id && p.trainerId === op.trainerId) return false;
+    if (op.type === 'saveTrainer' && p.type === 'saveTrainer' && p.trainerId === op.trainerId) return false;
+    if (op.type === 'deleteClient' && p.type === 'saveClient' && p.clientData.id === op.clientId && p.trainerId === op.trainerId) return false;
+    return true;
+  });
+  pendingSync.push(op);
+  savePendingSync();
+}
+
+function updateOfflineBanner() {
+  const banner = document.getElementById('offlineBanner');
+  const text = document.getElementById('offlineBannerText');
+  if (!navigator.onLine) {
+    banner.classList.add('is-visible');
+    text.textContent = '🔴 Sin conexión - Los cambios se guardan localmente';
+  } else if (pendingSync.length > 0) {
+    banner.classList.add('is-visible');
+    text.textContent = `Sincronizando ${pendingSync.length} cambio(s) pendiente(s)...`;
+  } else {
+    banner.classList.remove('is-visible');
+  }
+}
+
+async function processPendingSync() {
+  if (!navigator.onLine || pendingSync.length === 0) return;
+  setSync(true);
+  const remaining = [];
+  for (const op of pendingSync) {
+    try {
+      if (op.type === 'saveClient') {
+        const path = `clients/${op.trainerId}/${op.clientData.id}.json`;
+        const existing = await apiGet(path);
+        await apiPut(path, op.clientData, existing ? existing.sha : null, `Save ${op.clientData.name}`);
+      } else if (op.type === 'saveIndex') {
+        const path = `clients/${op.trainerId}/index.json`;
+        const existing = await apiGet(path);
+        await apiPut(path, op.indexData, existing ? existing.sha : null, `Idx Update ${op.trainerId}`);
+      } else if (op.type === 'deleteClient') {
+        const path = `clients/${op.trainerId}/${op.clientId}.json`;
+        const existing = await apiGet(path);
+        if (existing) await apiDel(path, existing.sha, `Del ${op.clientId}`);
+      } else if (op.type === 'saveTrainer') {
+        const path = `trainers/${op.trainerId}.json`;
+        const existing = await apiGet(path);
+        await apiPut(path, op.trainerData, existing ? existing.sha : null, `Trainer Upd`);
+      }
+    } catch(e) {
+      remaining.push(op);
+    }
+  }
+  pendingSync = remaining;
+  savePendingSync();
+  setSync(false);
+  if (remaining.length === 0) {
+    showToast('Datos sincronizados con GitHub ✓');
+    await getIndex();
+  }
+}
+
+window.addEventListener('online', () => { updateOfflineBanner(); processPendingSync(); });
+window.addEventListener('offline', () => { updateOfflineBanner(); });
+
 /* ============ TOAST & MODALS ============ */
 let tT; function showToast(m, t='success', d=2800) { const el=document.getElementById('toast'); el.innerHTML=(t==='syncing'?'<div class="spinner"></div>':'')+'<span>'+m+'</span>'; el.className='toast is-visible '+(t==='syncing'?'':t); clearTimeout(tT); if(t!=='syncing') tT=setTimeout(()=>el.classList.remove('is-visible'), d); }
 function openModal(id) { document.getElementById(id).classList.add('is-open'); document.body.style.overflow='hidden'; }
@@ -543,12 +635,63 @@ async function getIndex() {
 async function saveIndex(targetTrainerId) {
   const tId = targetTrainerId || currentUserId;
   const trainerClients = clientsIndex.filter(c => c.trainerId === tId).map(({trainerId, trainerName, ...rest}) => rest);
-  const p = `clients/${tId}/index.json`; const e = await apiGet(p);
-  await apiPut(p, trainerClients, e ? e.sha : null, `Idx Update ${tId}`);
+  // Guardar en caché local siempre
+  localStorage.setItem(`gb_idx_${tId}`, JSON.stringify(trainerClients));
+  if (!navigator.onLine) {
+    queueOp({ type: 'saveIndex', trainerId: tId, indexData: trainerClients });
+    return;
+  }
+  try {
+    const p = `clients/${tId}/index.json`; const e = await apiGet(p);
+    await apiPut(p, trainerClients, e ? e.sha : null, `Idx Update ${tId}`);
+  } catch(err) {
+    queueOp({ type: 'saveIndex', trainerId: tId, indexData: trainerClients });
+  }
 }
-async function getClient(id, trainerId) { const tId = trainerId || currentUserId; const f = await apiGet(`clients/${tId}/${id}.json`); return f ? JSON.parse(decB64(f.content)) : null; }
-async function saveClientData(client, trainerId) { const tId = trainerId || currentUserId; const p = `clients/${tId}/${client.id}.json`; const e = await apiGet(p); await apiPut(p, client, e ? e.sha : null, `Save ${client.name}`); }
-async function deleteClientData(id, trainerId) { const tId = trainerId || currentUserId; const p = `clients/${tId}/${id}.json`; const e = await apiGet(p); if (e) await apiDel(p, e.sha, `Del ${id}`); }
+
+async function getClient(id, trainerId) {
+  const tId = trainerId || currentUserId;
+  const cacheKey = `gb_client_${tId}_${id}`;
+  if (navigator.onLine) {
+    try {
+      const f = await apiGet(`clients/${tId}/${id}.json`);
+      if (f) { const data = JSON.parse(decB64(f.content)); localStorage.setItem(cacheKey, JSON.stringify(data)); return data; }
+    } catch(e) { /* fall through to cache */ }
+  }
+  const cached = localStorage.getItem(cacheKey);
+  return cached ? JSON.parse(cached) : null;
+}
+
+async function saveClientData(client, trainerId) {
+  const tId = trainerId || currentUserId;
+  const cacheKey = `gb_client_${tId}_${client.id}`;
+  localStorage.setItem(cacheKey, JSON.stringify(client));
+  if (!navigator.onLine) {
+    queueOp({ type: 'saveClient', trainerId: tId, clientData: client });
+    return;
+  }
+  try {
+    const p = `clients/${tId}/${client.id}.json`; const e = await apiGet(p);
+    await apiPut(p, client, e ? e.sha : null, `Save ${client.name}`);
+  } catch(err) {
+    queueOp({ type: 'saveClient', trainerId: tId, clientData: client });
+  }
+}
+
+async function deleteClientData(id, trainerId) {
+  const tId = trainerId || currentUserId;
+  localStorage.removeItem(`gb_client_${tId}_${id}`);
+  if (!navigator.onLine) {
+    queueOp({ type: 'deleteClient', trainerId: tId, clientId: id });
+    return;
+  }
+  try {
+    const p = `clients/${tId}/${id}.json`; const e = await apiGet(p);
+    if (e) await apiDel(p, e.sha, `Del ${id}`);
+  } catch(err) {
+    queueOp({ type: 'deleteClient', trainerId: tId, clientId: id });
+  }
+}
 
 /* ============ TRAINER PROFILE ============ */
 async function loadTrainer() { try { const f=await apiGet(`trainers/${currentUserId}.json`); if(f) trainerProfile=JSON.parse(decB64(f.content)); else trainerProfile={name:currentUserName, photo:'', phone:''}; } catch(e) { trainerProfile={name:currentUserName, photo:'', phone:''}; } updateBadge(); }
@@ -578,9 +721,20 @@ document.getElementById('saveTrainerBtn').addEventListener('click', async () => 
   try {
     trainerProfile.name=document.getElementById('trainerNameInput').value||currentUserName;
     trainerProfile.phone=document.getElementById('trainerPhoneInput').value.trim();
-    const p=`trainers/${currentUserId}.json`; const e=await apiGet(p);
-    await apiPut(p, trainerProfile, e?e.sha:null, `Trainer Upd`);
-    updateBadge(); showToast('Perfil actualizado'); closeModal('trainerModal');
+    if (!navigator.onLine) {
+      queueOp({ type: 'saveTrainer', trainerId: currentUserId, trainerData: trainerProfile });
+      showToast('Guardado localmente. Se sincronizará cuando vuelva la conexión.');
+    } else {
+      try {
+        const p=`trainers/${currentUserId}.json`; const e=await apiGet(p);
+        await apiPut(p, trainerProfile, e?e.sha:null, `Trainer Upd`);
+        showToast('Perfil actualizado');
+      } catch(err) {
+        queueOp({ type: 'saveTrainer', trainerId: currentUserId, trainerData: trainerProfile });
+        showToast('Sin conexión. Guardado localmente.', 'error');
+      }
+    }
+    updateBadge(); closeModal('trainerModal');
   } catch(e) { showToast('Error', 'error'); }
   finally { b.disabled=false; b.innerHTML='Guardar perfil'; setSync(false); }
 });
@@ -601,6 +755,9 @@ async function showApp() {
   }
   await loadTrainer();
   await getIndex();
+  // Procesar sincronización pendiente al cargar
+  updateOfflineBanner();
+  if (navigator.onLine && pendingSync.length > 0) processPendingSync();
 }
 document.getElementById('loginForm').addEventListener('submit', async e => {
   e.preventDefault(); const p=document.getElementById('passwordInput').value;
@@ -726,32 +883,22 @@ function renderStatsView() {
     </div>
   `;
   if (upcomingBdays.length > 0) {
-    html += `
-      <div class="section-divider-title">Próximos cumpleaños (7 días)</div>
+    html += `<div class="section-divider-title">Próximos cumpleaños (7 días)</div>
       ${upcomingBdays.map(c => {
         const d = daysUntilBirthday(c.birthdate);
         const txt = d === 0 ? '🎂 Hoy' : (d === 1 ? 'Mañana' : `En ${d} días`);
         return `<div class="pay-list-item"><div class="info"><h4>${escHtml(c.name)}</h4><p>${txt} - ${fmtDate(c.birthdate)}</p></div></div>`;
-      }).join('')}
-    `;
+      }).join('')}`;
   }
   html += `
     <div class="section-divider-title">🟢 Clientes al día (${paidClients.length})</div>
-    <div class="clients-grid">
-      ${paidClients.length > 0 ? paidClients.map(clientCardHtml).join('') : '<div class="empty-state"><h3>No hay clientes al día</h3></div>'}
-    </div>
+    <div class="clients-grid">${paidClients.length > 0 ? paidClients.map(clientCardHtml).join('') : '<div class="empty-state"><h3>No hay clientes al día</h3></div>'}</div>
     <div class="section-divider-title">🔴 Clientes con deuda (${debtClients.length})</div>
-    <div class="clients-grid">
-      ${debtClients.length > 0 ? debtClients.map(clientCardHtml).join('') : '<div class="empty-state"><h3>¡Nadie debe! Todo al día 🎉</h3></div>'}
-    </div>
+    <div class="clients-grid">${debtClients.length > 0 ? debtClients.map(clientCardHtml).join('') : '<div class="empty-state"><h3>¡Nadie debe! Todo al día 🎉</h3></div>'}</div>
   `;
   if (neutralClients.length > 0) {
-    html += `
-      <div class="section-divider-title">⚠️ Sin configurar pago (${neutralClients.length})</div>
-      <div class="clients-grid">
-        ${neutralClients.map(clientCardHtml).join('')}
-      </div>
-    `;
+    html += `<div class="section-divider-title">⚠️ Sin configurar pago (${neutralClients.length})</div>
+    <div class="clients-grid">${neutralClients.map(clientCardHtml).join('')}</div>`;
   }
   cont.innerHTML = html;
   cont.querySelectorAll('.client-card').forEach(card => card.addEventListener('click', () => {
@@ -778,16 +925,10 @@ document.getElementById('waBack').addEventListener('click', () => {
 
 function getFilteredRecipients() {
   let recipients = clientsIndex.filter(c => c.phone);
-  if (isAdmin && waTrainerFilterVal !== 'all') {
-    recipients = recipients.filter(c => c.trainerId === waTrainerFilterVal);
-  } else if (!isAdmin) {
-    recipients = recipients.filter(c => c.trainerId === currentUserId);
-  }
-  if (waFilter === 'debt') {
-    recipients = recipients.filter(c => getPaymentStatus(c) === 'debt');
-  } else if (waFilter === 'paid') {
-    recipients = recipients.filter(c => getPaymentStatus(c) === 'paid');
-  }
+  if (isAdmin && waTrainerFilterVal !== 'all') { recipients = recipients.filter(c => c.trainerId === waTrainerFilterVal); }
+  else if (!isAdmin) { recipients = recipients.filter(c => c.trainerId === currentUserId); }
+  if (waFilter === 'debt') { recipients = recipients.filter(c => getPaymentStatus(c) === 'debt'); }
+  else if (waFilter === 'paid') { recipients = recipients.filter(c => getPaymentStatus(c) === 'paid'); }
   return recipients;
 }
 
@@ -800,8 +941,7 @@ function renderWaView() {
         <option value="all">Todos los entrenadores</option>
         ${getUniqueTrainers().map(u => `<option value="${u.id}">${u.name}</option>`).join('')}
       </select>
-    </div>
-  ` : '';
+    </div>` : '';
   cont.innerHTML = `
     <div class="dashboard-header">
       <div class="dashboard-title-block">
@@ -829,11 +969,7 @@ function renderWaView() {
   document.getElementById('waTrainerFilter') && (document.getElementById('waTrainerFilter').value = waTrainerFilterVal);
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active', 'debt', 'paid'));
   const activeChip = document.querySelector(`.filter-chip[data-filter="${waFilter}"]`);
-  if (activeChip) {
-    activeChip.classList.add('active');
-    if (waFilter === 'debt') activeChip.classList.add('debt');
-    if (waFilter === 'paid') activeChip.classList.add('paid');
-  }
+  if (activeChip) { activeChip.classList.add('active'); if (waFilter === 'debt') activeChip.classList.add('debt'); if (waFilter === 'paid') activeChip.classList.add('paid'); }
   document.getElementById('broadcastMsg').addEventListener('input', (e) => updateBroadcastList(e.target.value));
   document.querySelectorAll('.filter-chip').forEach(chip => {
     chip.addEventListener('click', () => {
@@ -846,12 +982,7 @@ function renderWaView() {
     });
   });
   const waTrainerFilter = document.getElementById('waTrainerFilter');
-  if (waTrainerFilter) {
-    waTrainerFilter.addEventListener('change', (e) => {
-      waTrainerFilterVal = e.target.value;
-      updateBroadcastList(document.getElementById('broadcastMsg').value);
-    });
-  }
+  if (waTrainerFilter) { waTrainerFilter.addEventListener('change', (e) => { waTrainerFilterVal = e.target.value; updateBroadcastList(document.getElementById('broadcastMsg').value); }); }
   document.getElementById('waCopyMsg').addEventListener('click', () => {
     const msg = document.getElementById('broadcastMsg').value.trim() || 'Hola!';
     navigator.clipboard.writeText(msg).then(() => showToast('Mensaje copiado!')).catch(() => showToast('Error al copiar', 'error'));
@@ -871,10 +1002,7 @@ function updateBroadcastList(msg) {
   const finalMsg = msg.trim() || 'Hola!';
   const countEl = document.getElementById('waRecipientCount');
   if (countEl) countEl.textContent = recipients.length;
-  if (recipients.length === 0) {
-    list.innerHTML = '<p style="text-align:center; color:var(--color-text-secondary); padding: 2rem;">No hay clientes que coincidan con el filtro.</p>';
-    return;
-  }
+  if (recipients.length === 0) { list.innerHTML = '<p style="text-align:center; color:var(--color-text-secondary); padding: 2rem;">No hay clientes que coincidan con el filtro.</p>'; return; }
   list.innerHTML = recipients.map(c => {
     const status = getPaymentStatus(c);
     const statusBadge = status === 'paid' ? '<span style="color:var(--color-success); font-size:0.65rem;">● Al día</span>' :
@@ -882,10 +1010,7 @@ function updateBroadcastList(msg) {
                         '<span style="color:var(--color-warn); font-size:0.65rem;">● Sin config</span>';
     const tLabel = isAdmin ? ` <span style="color:var(--color-text-secondary); font-size:0.65rem;">(${c.trainerName})</span>` : '';
     return `<div class="pay-list-item" id="bc-${c.id}">
-      <div class="info">
-        <h4>${escHtml(c.name)}${tLabel}</h4>
-        <p>${c.phone} ${statusBadge}</p>
-      </div>
+      <div class="info"><h4>${escHtml(c.name)}${tLabel}</h4><p>${c.phone} ${statusBadge}</p></div>
       <a href="https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(finalMsg)}" target="_blank" class="btn btn-wa" onclick="markBroadcastSent('${c.id}')">Enviar</a>
     </div>`;
   }).join('');
@@ -893,14 +1018,7 @@ function updateBroadcastList(msg) {
 
 function markBroadcastSent(id) {
   const item = document.getElementById(`bc-${id}`);
-  if (item) {
-    const btn = item.querySelector('.btn-wa');
-    if (btn) {
-      btn.textContent = 'Enviado ✓';
-      btn.classList.add('sent');
-      btn.onclick = (e) => e.preventDefault();
-    }
-  }
+  if (item) { const btn = item.querySelector('.btn-wa'); if (btn) { btn.textContent = 'Enviado ✓'; btn.classList.add('sent'); btn.onclick = (e) => e.preventDefault(); } }
 }
 
 /* ============ TRAINERS MODAL ============ */
@@ -940,7 +1058,7 @@ document.getElementById('payBtn').addEventListener('click', () => {
   openModal('payModal');
 });
 
-/* ============ CLIENT FORM VIEW (Full Page) ============ */
+/* ============ CLIENT FORM VIEW (Full Page with Photo) ============ */
 document.getElementById('addClientBtn').addEventListener('click', () => openClientForm());
 document.getElementById('cancelClientFormBtn').addEventListener('click', () => {
   if (currentClientId) { document.getElementById('clientFormView').style.display = 'none'; openClient(currentClientId, currentClientTrainerId); }
@@ -964,29 +1082,26 @@ function openClientForm(id=null, trainerId=null) {
   currentClientId = id || null;
   currentClientTrainerId = trainerId || currentUserId;
   routineData = [];
-  
+  clientFormPhoto = '';
+
   document.getElementById('dashboardView').style.display = 'none';
   document.getElementById('statsView').style.display = 'none';
   document.getElementById('waView').style.display = 'none';
   document.getElementById('clientView').style.display = 'none';
   document.getElementById('clientFormView').style.display = 'block';
   document.getElementById('topbarBrand').classList.add('has-back');
-  
+
   const cont = document.getElementById('clientFormContent');
   const c = id ? clientsIndex.find(x => x.id === id && x.trainerId === currentClientTrainerId) : null;
   const title = id ? 'Editar <span class="accent">cliente</span>' : 'Nuevo <span class="accent">cliente</span>';
-  
-  // Generar opciones de días de pago (1-31)
+  if (c) clientFormPhoto = c.photo || '';
+
   const payDayOptions = PAY_DAYS.map(d => `<option value="${d}" ${c && c.paymentDay == d ? 'selected' : ''}>Día ${d}</option>`).join('');
-  
-  // Generar opciones de días de la semana
   const weekdayOptions = `<option value="">Seleccionar día</option>` + WEEKDAYS.map(d => `<option value="${d}">${d}</option>`).join('');
-  
-  // Generar filas de rutina existentes
-  const routineRowsHtml = c && c.routine && c.routine.length > 0 
+  const routineRowsHtml = c && c.routine && c.routine.length > 0
     ? c.routine.map((r, i) => buildRoutineRowHtml(r.day, r.ex, r.sets, r.reps, i)).join('')
     : buildRoutineRowHtml('', '', '', '', 0);
-  
+
   const trainerAssignRow = isAdmin ? `
     <div class="form-row full" style="margin-bottom:1rem;">
       <div class="form-field full">
@@ -995,9 +1110,13 @@ function openClientForm(id=null, trainerId=null) {
           ${getUniqueTrainers().map(u => `<option value="${u.id}" ${c && c.trainerId === u.id ? 'selected' : ''}>${u.name}</option>`).join('')}
         </select>
       </div>
-    </div>
-  ` : '';
-  
+    </div>` : '';
+
+  // Sección de foto con cámara y galería
+  const photoPreviewHtml = clientFormPhoto
+    ? `<img src="${clientFormPhoto}" style="width:100%;height:100%;object-fit:cover;">`
+    : `<span class="placeholder-text">Sin foto</span>`;
+
   cont.innerHTML = `
     <div class="dashboard-header">
       <div class="dashboard-title-block">
@@ -1005,6 +1124,16 @@ function openClientForm(id=null, trainerId=null) {
         <h1 class="dashboard-title">${title}</h1>
       </div>
     </div>
+
+    <!-- Sección de Foto del Cliente -->
+    <div class="photo-upload-section">
+      <div class="photo-preview-circle" id="clientPhotoPreview">${photoPreviewHtml}</div>
+      <div class="photo-btns">
+        <label class="photo-btn-label">📷 Tomar foto<input type="file" id="clientPhotoCamera" accept="image/*" capture="environment" style="display:none;"></label>
+        <label class="photo-btn-label">🖼️ Galería<input type="file" id="clientPhotoGallery" accept="image/*" style="display:none;"></label>
+      </div>
+    </div>
+
     <input type="hidden" id="clientId" value="${id || ''}">
     ${trainerAssignRow}
     <div class="form-row">
@@ -1057,7 +1186,34 @@ function openClientForm(id=null, trainerId=null) {
       <div class="form-row full"><div class="form-field full"><textarea id="clientNotes" placeholder="Lesiones, condiciones médicas...">${c ? escHtml(c.notes || '') : ''}</textarea></div></div>
     </div>
   `;
-  
+
+  // Bind photo inputs (cámara y galería)
+  function handlePhotoInput(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 600;
+        let { width, height } = img;
+        if (width > height && width > maxDim) { height = (height * maxDim) / width; width = maxDim; }
+        else if (height > maxDim) { width = (width * maxDim) / height; height = maxDim; }
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        clientFormPhoto = canvas.toDataURL('image/jpeg', 0.8);
+        document.getElementById('clientPhotoPreview').innerHTML = `<img src="${clientFormPhoto}" style="width:100%;height:100%;object-fit:cover;">`;
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  const cameraInput = document.getElementById('clientPhotoCamera');
+  const galleryInput = document.getElementById('clientPhotoGallery');
+  if (cameraInput) cameraInput.addEventListener('change', (e) => handlePhotoInput(e.target.files[0]));
+  if (galleryInput) galleryInput.addEventListener('change', (e) => handlePhotoInput(e.target.files[0]));
+
   // Bind add exercise button
   document.getElementById('addExBtn').addEventListener('click', () => {
     const cont = document.getElementById('routineBuilderContainer');
@@ -1067,7 +1223,7 @@ function openClientForm(id=null, trainerId=null) {
     while (div.firstChild) cont.appendChild(div.firstChild);
     bindDeleteButtons();
   });
-  
+
   bindDeleteButtons();
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
@@ -1099,7 +1255,7 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
   if(!name) { showToast('El nombre es obligatorio', 'error'); return; }
   const assignedTrainerId = isAdmin ? document.getElementById('clientTrainerId').value : currentUserId;
   const b = document.getElementById('saveClientBtn'); b.disabled=true; b.innerHTML='<div class="spinner"></div> Guardando...'; setSync(true);
-  
+
   // Collect routine data
   routineData = [];
   document.querySelectorAll('#routineBuilderContainer .routine-builder-row').forEach(row => {
@@ -1114,7 +1270,7 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
     let cd;
     const oldTrainerId = currentClientTrainerId;
     if (id) { cd = await getClient(id, oldTrainerId); }
-    else { cd = { id: uid(), shortId: genShortId(), photo: '', measurements: [], createdAt: new Date().toISOString() }; }
+    else { cd = { id: uid(), shortId: genShortId(), measurements: [], createdAt: new Date().toISOString() }; }
     cd.name = name;
     cd.birthdate = document.getElementById('clientBirthdate').value;
     cd.phone = document.getElementById('clientPhone').value.trim();
@@ -1128,7 +1284,8 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
     cd.routine = routineData;
     cd.diet = document.getElementById('clientDiet').value.trim();
     cd.notes = document.getElementById('clientNotes').value.trim();
-    
+    cd.photo = clientFormPhoto || cd.photo || '';
+
     if (isAdmin && id && oldTrainerId !== assignedTrainerId) {
       await deleteClientData(id, oldTrainerId);
       clientsIndex = clientsIndex.filter(c => !(c.id === id && c.trainerId === oldTrainerId));
@@ -1142,8 +1299,14 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
     const idx = clientsIndex.findIndex(c => c.id === cd.id && c.trainerId === assignedTrainerId);
     if(idx > -1) clientsIndex[idx] = entry; else clientsIndex.push(entry);
     await saveIndex(assignedTrainerId);
-    showToast(id ? 'Cliente actualizado' : 'Cliente agregado');
-    
+
+    // Mostrar mensaje según estado de conexión
+    if (!navigator.onLine) {
+      showToast('Sin conexión. Guardado localmente. Se sincronizará al volver la conexión.', 'error');
+    } else {
+      showToast(id ? 'Cliente actualizado' : 'Cliente agregado');
+    }
+
     if (id) {
       document.getElementById('clientFormView').style.display = 'none';
       await openClient(id, assignedTrainerId);
@@ -1294,6 +1457,7 @@ document.getElementById('saveMeasurementBtn').addEventListener('click', async ()
     if(mid) { const mi = c.measurements.findIndex(m => m.id === mid); if(mi>-1) c.measurements[mi] = {...c.measurements[mi], ...data}; } else { c.measurements.push({id: uid(), ...data}); }
     await saveClientData(c, tId);
     const idx = clientsIndex.findIndex(x => x.id === cid && x.trainerId === tId); if(idx>-1) { const s=[...c.measurements].sort((a,b)=>(b.date||'').localeCompare(a.date||'')); const fS=[...c.measurements].sort((a,b)=>(a.date||'').localeCompare(b.date||'')); clientsIndex[idx].measurementsCount = c.measurements.length; clientsIndex[idx].lastDate = s[0]?.date||null; clientsIndex[idx].firstWeight = fS[0]?.weight||null; clientsIndex[idx].lastWeight = s[0]?.weight||null; await saveIndex(tId); }
+    if (!navigator.onLine) { showToast('Sin conexión. Guardado localmente.', 'error'); }
     closeModal('measurementModal'); renderClientDetail(cid, tId);
   } catch(e) { showToast('Error', 'error'); } finally { b.disabled=false; b.innerHTML='Guardar medición'; setSync(false); }
 });
@@ -1327,6 +1491,10 @@ async function initPortal(trainerId, shortId) {
   }, 100);
   setSync(false);
 }
+
+/* ============ INIT ============ */
+loadPendingSync();
+updateOfflineBanner();
 
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.has('portal') && urlParams.has('id')) {
