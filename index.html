@@ -101,7 +101,7 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 .measure-alert { position: absolute; top: 2.2rem; right: 0.5rem; background: var(--color-warn); color: #111; font-family: 'IBM Plex Mono', monospace; font-size: 0.55rem; padding: 0.3rem 0.5rem; text-transform: uppercase; font-weight: 700; }
 .empty-state { grid-column: 1 / -1; text-align: center; padding: 5rem 2rem; border: 1px dashed var(--color-border-strong); background: rgba(255,255,255,0.5); }
 
-.stats-view, .wa-view { padding: 2rem 2rem 6rem; max-width: 1400px; margin: 0 auto; }
+.stats-view, .wa-view, .client-form-view { padding: 2rem 2rem 6rem; max-width: 1400px; margin: 0 auto; }
 .client-back { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--color-text-secondary); margin-bottom: 2rem; cursor: pointer; }
 .client-back:hover { color: var(--color-accent); gap: 0.8rem; }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
@@ -228,13 +228,15 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
 .action-btn.wa { background: var(--color-wa); color: #fff; border-color: var(--color-wa); } .action-btn.wa:hover { background: #128C7E; border-color: #128C7E; }
 .action-btn.copy { background: #fff; color: var(--color-text-primary); border-color: var(--color-border-strong); }
 
+.form-actions-bar { position: sticky; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid var(--color-border); padding: 1.25rem 0; display: flex; justify-content: flex-end; gap: 0.75rem; z-index: 10; margin-top: 2rem; }
+
 @media (max-width: 900px) {
   .topbar { padding: 1rem 1.25rem; flex-wrap: wrap; gap: 1rem; } .topbar-actions { gap: 0.5rem; }
   .user-badge span, .topbar-btn { padding: 0.5rem 0.65rem; font-size: 0.6rem; }
   .dashboard { padding: 2rem 1.25rem 4rem; } .client-header { grid-template-columns: 1fr; gap: 1.5rem; padding: 1.5rem; }
   .client-photo-wrap { max-width: 200px; } .client-info-grid { grid-template-columns: repeat(2, 1fr); }
   .client-actions { flex-direction: row; flex-wrap: wrap; } .client-actions .action-btn { flex: 1; min-width: 120px; }
-  .client-detail, .stats-view, .wa-view { padding: 1.5rem 1.25rem 4rem; } .form-row { grid-template-columns: 1fr; }
+  .client-detail, .stats-view, .wa-view, .client-form-view { padding: 1.5rem 1.25rem 4rem; } .form-row { grid-template-columns: 1fr; }
   .modal-body { padding: 1.5rem; } .modal-foot { padding: 1rem 1.5rem; flex-direction: column-reverse; } .modal-foot .btn { width: 100%; }
   .routine-builder-row { grid-template-columns: 1fr 1fr; }
 }
@@ -306,13 +308,22 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
     <div id="waContent"></div>
   </main>
 
+  <main class="client-form-view" id="clientFormView" style="display:none">
+    <a class="client-back" id="clientFormBack">← Volver</a>
+    <div id="clientFormContent"></div>
+    <div class="form-actions-bar">
+      <button class="btn btn-secondary" id="cancelClientFormBtn">Cancelar</button>
+      <button class="btn btn-primary" id="saveClientBtn">Guardar cliente</button>
+    </div>
+  </main>
+
   <main class="client-detail" id="clientView" style="display:none">
     <a class="client-back" id="clientBack">← Volver a clientes</a>
     <div id="clientContent"></div>
   </main>
 </div>
 
-<!-- TRAINER MODAL -->
+<!-- TRAINER MODAL (Mi Perfil) -->
 <div class="modal-backdrop" id="trainerModal">
   <div class="modal">
     <div class="modal-head"><h3>Mi <span class="accent">Perfil</span></h3><button class="modal-close" data-close-modal="trainerModal">×</button></div>
@@ -322,66 +333,11 @@ input, textarea, select { font-family: inherit; } img { display: block; max-widt
         <label style="padding:0.6rem 1rem; background:#fff; border:1px solid var(--color-border-strong); cursor:pointer; font-family:'IBM Plex Mono', monospace; font-size:0.7rem; text-transform:uppercase;">Cambiar foto<input type="file" id="trainerPhotoInput" accept="image/*" style="display:none;"></label>
       </div>
       <div class="form-row full"><div class="form-field full"><label>Nombre visible</label><input type="text" id="trainerNameInput"></div></div>
+      <div class="form-row full"><div class="form-field full"><label>Teléfono (Ej: 5491112345678)</label><input type="tel" id="trainerPhoneInput"></div></div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-secondary" data-close-modal="trainerModal">Cancelar</button>
       <button class="btn btn-primary" id="saveTrainerBtn">Guardar perfil</button>
-    </div>
-  </div>
-</div>
-
-<!-- CLIENT MODAL -->
-<div class="modal-backdrop" id="clientModal">
-  <div class="modal">
-    <div class="modal-head"><h3 id="clientModalTitle">Nuevo <span class="accent">cliente</span></h3><button class="modal-close" data-close-modal="clientModal">×</button></div>
-    <div class="modal-body">
-      <input type="hidden" id="clientId">
-      <div id="trainerAssignRow" class="form-row full" style="display:none; margin-bottom:1rem;">
-        <div class="form-field full">
-          <label>Asignar a Entrenador</label>
-          <select id="clientTrainerId"></select>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-field"><label>Nombre completo *</label><input type="text" id="clientName"></div>
-        <div class="form-field"><label>Fecha de nacimiento</label><input type="date" id="clientBirthdate"></div>
-      </div>
-      <div class="form-row">
-        <div class="form-field"><label>Teléfono (Ej: 5491112345678)</label><input type="tel" id="clientPhone"></div>
-        <div class="form-field"><label>Email</label><input type="email" id="clientEmail"></div>
-      </div>
-      <div class="form-row full"><div class="form-field full"><label>Objetivo principal</label><input type="text" id="clientGoal"></div></div>
-      <div class="form-row">
-        <div class="form-field"><label>Altura (cm)</label><input type="number" id="clientHeight"></div>
-        <div class="form-field"><label>Fecha de inicio</label><input type="date" id="clientStartDate"></div>
-      </div>
-      <div class="form-divider">
-        <div class="form-divider-title">Pagos y Control</div>
-        <div class="form-row">
-          <div class="form-field"><label>Día de pago (1-31)</label><input type="number" id="clientPaymentDay" min="1" max="31" placeholder="Ej: 10"></div>
-          <div class="form-field"><label>Estado de cuota</label><select id="clientPaymentStatus"><option value="Al día">Al día</option><option value="Pendiente">Pendiente</option><option value="Vencido">Vencido</option></select></div>
-        </div>
-        <div class="form-row full">
-          <div class="form-field full"><label>Precio de la cuota ($)</label><input type="number" id="clientPaymentAmount" placeholder="Ej: 15000" min="0"></div>
-        </div>
-      </div>
-      <div class="form-divider">
-        <div class="form-divider-title">Rutina de Entrenamiento</div>
-        <div id="routineBuilderContainer"></div>
-        <button class="add-ex-btn" id="addExBtn">+ Agregar Ejercicio</button>
-      </div>
-      <div class="form-divider">
-        <div class="form-divider-title">Plan Nutricional / Dieta</div>
-        <div class="form-row full"><div class="form-field full"><textarea id="clientDiet" placeholder="Desayuno: Avena con frutas..."></textarea></div></div>
-      </div>
-      <div class="form-divider">
-        <div class="form-divider-title">Notas privadas</div>
-        <div class="form-row full"><div class="form-field full"><textarea id="clientNotes" placeholder="Lesiones, condiciones médicas..."></textarea></div></div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-secondary" data-close-modal="clientModal">Cancelar</button>
-      <button class="btn btn-primary" id="saveClientBtn">Guardar cliente</button>
     </div>
   </div>
 </div>
@@ -484,6 +440,9 @@ const USERS = {
 };
 
 const EXERCISES = ['Press Banca', 'Sentadilla', 'Peso Muerto', 'Press Militar', 'Remo con Barra', 'Dominadas', 'Curl Bíceps', 'Extensión Tríceps', 'Elevaciones Laterales', 'Press Inclinado', 'Prensa de Piernas', 'Zancadas', 'Curl Femoral', 'Gemelos', 'Plancha Abdominal'];
+const WEEKDAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+// Generar opciones del 1 al 31 para día de pago
+const PAY_DAYS = Array.from({length: 31}, (_, i) => i + 1);
 
 let gitToken = GIT_TOKEN;
 let currentUserId = null;
@@ -492,7 +451,7 @@ let clientsIndex = [];
 let currentClientId = null;
 let currentClientTrainerId = null;
 let confirmCallback = null;
-let trainerProfile = { name: '', photo: '' };
+let trainerProfile = { name: '', photo: '', phone: '' };
 let currentMPhoto = '';
 let routineData = [];
 let isAdmin = false;
@@ -592,11 +551,39 @@ async function saveClientData(client, trainerId) { const tId = trainerId || curr
 async function deleteClientData(id, trainerId) { const tId = trainerId || currentUserId; const p = `clients/${tId}/${id}.json`; const e = await apiGet(p); if (e) await apiDel(p, e.sha, `Del ${id}`); }
 
 /* ============ TRAINER PROFILE ============ */
-async function loadTrainer() { try { const f=await apiGet(`trainers/${currentUserId}.json`); if(f) trainerProfile=JSON.parse(decB64(f.content)); else trainerProfile={name:currentUserName, photo:''}; } catch(e) { trainerProfile={name:currentUserName, photo:''}; } updateBadge(); }
+async function loadTrainer() { try { const f=await apiGet(`trainers/${currentUserId}.json`); if(f) trainerProfile=JSON.parse(decB64(f.content)); else trainerProfile={name:currentUserName, photo:'', phone:''}; } catch(e) { trainerProfile={name:currentUserName, photo:'', phone:''}; } updateBadge(); }
 function updateBadge() { document.getElementById('userBadgeName').textContent = trainerProfile.name || currentUserName; const p=document.getElementById('userBadgePhoto'); if(trainerProfile.photo) p.innerHTML=`<img src="${trainerProfile.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`; else p.textContent=getInit(trainerProfile.name||currentUserName); }
-document.getElementById('userBadge').addEventListener('click', () => { document.getElementById('trainerNameInput').value = trainerProfile.name || currentUserName; const pv=document.getElementById('trainerPhotoPreview'); if(trainerProfile.photo) pv.innerHTML=`<img src="${trainerProfile.photo}" style="width:100%;height:100%;object-fit:cover;">`; else pv.textContent=getInit(trainerProfile.name||currentUserName); openModal('trainerModal'); });
-document.getElementById('trainerPhotoInput').addEventListener('change', e => { const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=ev => { const img=new Image(); img.onload=()=>{ const c=document.createElement('canvas'); let {width,height}=img; if(width>height&&width>300){height=height*300/width;width=300;} else if(height>300){width=width*300/height;height=300;} c.width=width;c.height=height; c.getContext('2d').drawImage(img,0,0,width,height); trainerProfile.photo=c.toDataURL('image/jpeg',0.8); document.getElementById('trainerPhotoPreview').innerHTML=`<img src="${trainerProfile.photo}" style="width:100%;height:100%;object-fit:cover;">`; }; img.src=ev.target.result; }; r.readAsDataURL(f); });
-document.getElementById('saveTrainerBtn').addEventListener('click', async () => { const b=document.getElementById('saveTrainerBtn'); b.disabled=true; b.innerHTML='<div class="spinner"></div>'; setSync(true); try { trainerProfile.name=document.getElementById('trainerNameInput').value||currentUserName; const p=`trainers/${currentUserId}.json`; const e=await apiGet(p); await apiPut(p, trainerProfile, e?e.sha:null, `Trainer Upd`); updateBadge(); showToast('Perfil actualizado'); closeModal('trainerModal'); } catch(e) { showToast('Error', 'error'); } finally { b.disabled=false; b.innerHTML='Guardar perfil'; setSync(false); } });
+document.getElementById('userBadge').addEventListener('click', () => {
+  document.getElementById('trainerNameInput').value = trainerProfile.name || currentUserName;
+  document.getElementById('trainerPhoneInput').value = trainerProfile.phone || '';
+  const pv=document.getElementById('trainerPhotoPreview');
+  if(trainerProfile.photo) pv.innerHTML=`<img src="${trainerProfile.photo}" style="width:100%;height:100%;object-fit:cover;">`;
+  else pv.textContent=getInit(trainerProfile.name||currentUserName);
+  openModal('trainerModal');
+});
+document.getElementById('trainerPhotoInput').addEventListener('change', e => {
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader(); r.onload=ev => {
+    const img=new Image(); img.onload=()=>{
+      const c=document.createElement('canvas'); let {width,height}=img;
+      if(width>height&&width>300){height=height*300/width;width=300;} else if(height>300){width=width*300/height;height=300;}
+      c.width=width;c.height=height; c.getContext('2d').drawImage(img,0,0,width,height);
+      trainerProfile.photo=c.toDataURL('image/jpeg',0.8);
+      document.getElementById('trainerPhotoPreview').innerHTML=`<img src="${trainerProfile.photo}" style="width:100%;height:100%;object-fit:cover;">`;
+    }; img.src=ev.target.result;
+  }; r.readAsDataURL(f);
+});
+document.getElementById('saveTrainerBtn').addEventListener('click', async () => {
+  const b=document.getElementById('saveTrainerBtn'); b.disabled=true; b.innerHTML='<div class="spinner"></div>'; setSync(true);
+  try {
+    trainerProfile.name=document.getElementById('trainerNameInput').value||currentUserName;
+    trainerProfile.phone=document.getElementById('trainerPhoneInput').value.trim();
+    const p=`trainers/${currentUserId}.json`; const e=await apiGet(p);
+    await apiPut(p, trainerProfile, e?e.sha:null, `Trainer Upd`);
+    updateBadge(); showToast('Perfil actualizado'); closeModal('trainerModal');
+  } catch(e) { showToast('Error', 'error'); }
+  finally { b.disabled=false; b.innerHTML='Guardar perfil'; setSync(false); }
+});
 
 /* ============ LOGIN ============ */
 function checkLogin() { const li=sessionStorage.getItem('gb_s')==='true'; currentUserId=sessionStorage.getItem('gb_uid'); currentUserName=sessionStorage.getItem('gb_uname')||'Entrenador'; if(li&&currentUserId) showApp(); else showLogin(); }
@@ -605,20 +592,31 @@ async function showApp() {
   isAdmin = currentUserId === 'admin';
   document.getElementById('loginScreen').classList.add('is-hidden');
   document.getElementById('app').classList.add('is-active');
-  // Cambiar título según rol
   document.getElementById('dashTitle').innerHTML = isAdmin ? 'Centro de <span class="accent">Control</span>' : 'Tus <span class="accent">clientes</span>.';
   if (isAdmin) {
     document.getElementById('trainerFilter').style.display = 'block';
     document.getElementById('trainersBtn').style.display = 'inline-flex';
-    document.getElementById('trainerAssignRow').style.display = 'grid';
     const opts = getUniqueTrainers().map(u => `<option value="${u.id}">${u.name}</option>`).join('');
     document.getElementById('trainerFilter').innerHTML = `<option value="all">Todos los entrenadores</option>` + opts;
-    document.getElementById('clientTrainerId').innerHTML = opts;
   }
   await loadTrainer();
   await getIndex();
 }
-document.getElementById('loginForm').addEventListener('submit', async e => { e.preventDefault(); const p=document.getElementById('passwordInput').value; if(!USERS[p]) { document.getElementById('loginError').textContent='Contraseña incorrecta.'; return; } const b=document.getElementById('loginBtn'); b.disabled=true; b.innerHTML='<div class="spinner"></div>'; currentUserId=USERS[p].id; currentUserName=USERS[p].name; try { const t=await apiGet(`clients/${currentUserId}/index.json`); if(t||t===null) { sessionStorage.setItem('gb_s','true'); sessionStorage.setItem('gb_uid',currentUserId); sessionStorage.setItem('gb_uname',currentUserName); document.getElementById('loginError').textContent=''; showApp(); } } catch(err) { document.getElementById('loginError').textContent='Token vencido.'; currentUserId=null; } finally { b.disabled=false; b.innerHTML='<span>Entrar al panel →</span>'; } });
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault(); const p=document.getElementById('passwordInput').value;
+  if(!USERS[p]) { document.getElementById('loginError').textContent='Contraseña incorrecta.'; return; }
+  const b=document.getElementById('loginBtn'); b.disabled=true; b.innerHTML='<div class="spinner"></div>';
+  currentUserId=USERS[p].id; currentUserName=USERS[p].name;
+  try {
+    const t=await apiGet(`clients/${currentUserId}/index.json`);
+    if(t||t===null) {
+      sessionStorage.setItem('gb_s','true'); sessionStorage.setItem('gb_uid',currentUserId);
+      sessionStorage.setItem('gb_uname',currentUserName);
+      document.getElementById('loginError').textContent=''; showApp();
+    }
+  } catch(err) { document.getElementById('loginError').textContent='Token vencido.'; currentUserId=null; }
+  finally { b.disabled=false; b.innerHTML='<span>Entrar al panel →</span>'; }
+});
 document.getElementById('logoutBtn').addEventListener('click', () => { sessionStorage.clear(); currentUserId=null; checkLogin(); });
 
 /* ============ DASHBOARD ============ */
@@ -628,7 +626,7 @@ function renderGrid() {
   const filterVal = isAdmin ? document.getElementById('trainerFilter').value : currentUserId;
   document.getElementById('statTotal').textContent = clientsIndex.length;
   const wAgo = new Date(Date.now() - 7*24*60*60*1000); let wM=0; clientsIndex.forEach(c => { if(c.lastDate && new Date(c.lastDate)>=wAgo) wM++; }); document.getElementById('statWeek').textContent = wM;
-  let f = clientsIndex; 
+  let f = clientsIndex;
   if (isAdmin && filterVal !== 'all') f = f.filter(c => c.trainerId === filterVal);
   if (s) f = f.filter(c => (c.name&&c.name.toLowerCase().includes(s)) || (c.shortId&&c.shortId.includes(s)));
   if(f.length===0) { grid.innerHTML = `<div class="empty-state"><h3>${clientsIndex.length===0?'Todavía no hay clientes':'Sin resultados'}</h3></div>`; return; }
@@ -674,7 +672,6 @@ document.getElementById('statsBtn').addEventListener('click', () => {
   renderStatsView();
   window.scrollTo({ top: 0, behavior: 'instant' });
 });
-
 document.getElementById('statsBack').addEventListener('click', () => {
   document.getElementById('statsView').style.display = 'none';
   document.getElementById('dashboardView').style.display = 'block';
@@ -685,24 +682,19 @@ document.getElementById('statsBack').addEventListener('click', () => {
 function renderStatsView() {
   const data = isAdmin ? clientsIndex : clientsIndex.filter(c => c.trainerId === currentUserId);
   const cont = document.getElementById('statsContent');
-  
   const totalClients = data.length;
   const totalRevenue = data.reduce((sum, c) => sum + (c.paymentAmount ? parseFloat(c.paymentAmount) : 0), 0);
   const now = new Date();
   const thisMonth = now.getMonth(); const thisYear = now.getFullYear();
   const newThisMonth = data.filter(c => { if (!c.createdAt) return false; const cd = new Date(c.createdAt); return cd.getMonth() === thisMonth && cd.getFullYear() === thisYear; }).length;
   const pendingMeasurements = data.filter(c => daysSinceLastMeasurement(c) > 30).length;
-  const overduePayments = data.filter(c => getPaymentStatus(c) === 'debt').length;
   const paidClients = data.filter(c => getPaymentStatus(c) === 'paid');
   const debtClients = data.filter(c => getPaymentStatus(c) === 'debt');
   const neutralClients = data.filter(c => getPaymentStatus(c) === 'neutral');
-  
   const dayDistribution = new Array(31).fill(0);
   data.forEach(c => { if (c.paymentDay) { const d = parseInt(c.paymentDay); if (d >= 1 && d <= 31) dayDistribution[d-1]++; } });
   const maxDayCount = Math.max(...dayDistribution, 1);
-  
   const upcomingBdays = data.filter(c => c.birthdate && daysUntilBirthday(c.birthdate) <= 7).sort((a,b) => daysUntilBirthday(a.birthdate) - daysUntilBirthday(b.birthdate));
-  
   function clientCardHtml(c) {
     const status = getPaymentStatus(c);
     const cardClass = status === 'paid' ? 'is-paid' : (status === 'debt' ? 'is-debt' : '');
@@ -711,7 +703,6 @@ function renderStatsView() {
     const tLabel = isAdmin ? `<div class="client-card-trainer">${c.trainerName||'S/D'}</div>` : '';
     return `<div class="client-card ${cardClass}" data-id="${c.id}" data-trainer="${c.trainerId}"><div class="client-card-photo">${ph}<div class="client-card-id">ID: ${c.shortId||'--------'}</div>${badgeHtml}</div><div class="client-card-name">${escHtml(c.name||'S/N')}</div>${tLabel}<div class="client-card-goal">${escHtml(c.goal||'')}</div><div class="client-card-meta"><span>${fmtMoney(c.paymentAmount)}</span><span>${c.paymentDay ? 'Día ' + c.paymentDay : 'S/D'}</span></div></div>`;
   }
-  
   let html = `
     <div class="dashboard-header">
       <div class="dashboard-title-block">
@@ -719,7 +710,6 @@ function renderStatsView() {
         <h1 class="dashboard-title">${isAdmin ? 'Todo el <span class="accent">gym</span>' : 'Mis <span class="accent">números</span>'}</h1>
       </div>
     </div>
-    
     <div class="stats-grid">
       <div class="stat-card"><div class="lbl">Clientes Activos</div><div class="num">${totalClients}</div></div>
       <div class="stat-card"><div class="lbl">Facturación Mensual</div><div class="num accent">${fmtMoney(totalRevenue)}</div></div>
@@ -728,7 +718,6 @@ function renderStatsView() {
       <div class="stat-card"><div class="lbl">Con deuda 🔴</div><div class="num" style="color:var(--color-danger)">${debtClients.length}</div></div>
       <div class="stat-card"><div class="lbl">Falta Medir</div><div class="num" style="color:var(--color-warn)">${pendingMeasurements}</div></div>
     </div>
-    
     <div class="section-divider-title">Distribución de días de pago</div>
     <div class="bar-chart-container">
       <div class="bar-chart">
@@ -736,7 +725,6 @@ function renderStatsView() {
       </div>
     </div>
   `;
-  
   if (upcomingBdays.length > 0) {
     html += `
       <div class="section-divider-title">Próximos cumpleaños (7 días)</div>
@@ -747,19 +735,16 @@ function renderStatsView() {
       }).join('')}
     `;
   }
-  
   html += `
     <div class="section-divider-title">🟢 Clientes al día (${paidClients.length})</div>
     <div class="clients-grid">
       ${paidClients.length > 0 ? paidClients.map(clientCardHtml).join('') : '<div class="empty-state"><h3>No hay clientes al día</h3></div>'}
     </div>
-    
     <div class="section-divider-title">🔴 Clientes con deuda (${debtClients.length})</div>
     <div class="clients-grid">
       ${debtClients.length > 0 ? debtClients.map(clientCardHtml).join('') : '<div class="empty-state"><h3>¡Nadie debe! Todo al día 🎉</h3></div>'}
     </div>
   `;
-  
   if (neutralClients.length > 0) {
     html += `
       <div class="section-divider-title">⚠️ Sin configurar pago (${neutralClients.length})</div>
@@ -768,7 +753,6 @@ function renderStatsView() {
       </div>
     `;
   }
-  
   cont.innerHTML = html;
   cont.querySelectorAll('.client-card').forEach(card => card.addEventListener('click', () => {
     document.getElementById('statsView').style.display = 'none';
@@ -776,17 +760,15 @@ function renderStatsView() {
   }));
 }
 
-/* ============ WHATSAPP VIEW (Full Page) ============ */
+/* ============ WHATSAPP VIEW ============ */
 document.getElementById('broadcastBtn').addEventListener('click', () => {
   document.getElementById('dashboardView').style.display = 'none';
   document.getElementById('waView').style.display = 'block';
   document.getElementById('topbarBrand').classList.add('has-back');
-  waFilter = 'all';
-  waTrainerFilterVal = 'all';
+  waFilter = 'all'; waTrainerFilterVal = 'all';
   renderWaView();
   window.scrollTo({ top: 0, behavior: 'instant' });
 });
-
 document.getElementById('waBack').addEventListener('click', () => {
   document.getElementById('waView').style.display = 'none';
   document.getElementById('dashboardView').style.display = 'block';
@@ -820,7 +802,6 @@ function renderWaView() {
       </select>
     </div>
   ` : '';
-  
   cont.innerHTML = `
     <div class="dashboard-header">
       <div class="dashboard-title-block">
@@ -828,33 +809,24 @@ function renderWaView() {
         <h1 class="dashboard-title">Enviar <span class="accent">WhatsApp</span></h1>
       </div>
     </div>
-    
     <div class="form-field full" style="margin-bottom:1rem;">
       <label>Mensaje a enviar</label>
       <textarea id="broadcastMsg" placeholder="Escribe tu mensaje..." style="min-height: 120px;"></textarea>
     </div>
-    
     ${trainerFilterHtml}
-    
     <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin: 1rem 0;">
       <button class="filter-chip active" data-filter="all">Todos</button>
       <button class="filter-chip" data-filter="debt">🔴 Solo Deudores</button>
       <button class="filter-chip" data-filter="paid">🟢 Solo Al Día</button>
     </div>
-    
     <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom: 1.5rem;">
       <button class="btn btn-secondary" id="waCopyMsg" style="flex:1; min-width: 150px;">📋 Copiar Mensaje</button>
       <button class="btn btn-wa" id="waOpenGeneric" style="flex:1; min-width: 150px;">💬 Abrir WhatsApp (sin número)</button>
     </div>
-    
     <div class="section-divider-title">Destinatarios (<span id="waRecipientCount">0</span>)</div>
     <div id="broadcastList"></div>
   `;
-  
-  // Set initial values
   document.getElementById('waTrainerFilter') && (document.getElementById('waTrainerFilter').value = waTrainerFilterVal);
-  
-  // Update chips active state
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active', 'debt', 'paid'));
   const activeChip = document.querySelector(`.filter-chip[data-filter="${waFilter}"]`);
   if (activeChip) {
@@ -862,10 +834,7 @@ function renderWaView() {
     if (waFilter === 'debt') activeChip.classList.add('debt');
     if (waFilter === 'paid') activeChip.classList.add('paid');
   }
-  
-  // Bind events
   document.getElementById('broadcastMsg').addEventListener('input', (e) => updateBroadcastList(e.target.value));
-  
   document.querySelectorAll('.filter-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       waFilter = chip.dataset.filter;
@@ -876,7 +845,6 @@ function renderWaView() {
       updateBroadcastList(document.getElementById('broadcastMsg').value);
     });
   });
-  
   const waTrainerFilter = document.getElementById('waTrainerFilter');
   if (waTrainerFilter) {
     waTrainerFilter.addEventListener('change', (e) => {
@@ -884,18 +852,15 @@ function renderWaView() {
       updateBroadcastList(document.getElementById('broadcastMsg').value);
     });
   }
-  
   document.getElementById('waCopyMsg').addEventListener('click', () => {
     const msg = document.getElementById('broadcastMsg').value.trim() || 'Hola!';
     navigator.clipboard.writeText(msg).then(() => showToast('Mensaje copiado!')).catch(() => showToast('Error al copiar', 'error'));
   });
-  
   document.getElementById('waOpenGeneric').addEventListener('click', () => {
     const msg = document.getElementById('broadcastMsg').value.trim() || 'Hola!';
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     showToast('WhatsApp abierto. Elegí a quién enviarlo.');
   });
-  
   updateBroadcastList('');
 }
 
@@ -904,19 +869,16 @@ function updateBroadcastList(msg) {
   if (!list) return;
   const recipients = getFilteredRecipients();
   const finalMsg = msg.trim() || 'Hola!';
-  
   const countEl = document.getElementById('waRecipientCount');
   if (countEl) countEl.textContent = recipients.length;
-  
   if (recipients.length === 0) {
     list.innerHTML = '<p style="text-align:center; color:var(--color-text-secondary); padding: 2rem;">No hay clientes que coincidan con el filtro.</p>';
     return;
   }
-  
   list.innerHTML = recipients.map(c => {
     const status = getPaymentStatus(c);
-    const statusBadge = status === 'paid' ? '<span style="color:var(--color-success); font-size:0.65rem;">● Al día</span>' : 
-                        status === 'debt' ? '<span style="color:var(--color-danger); font-size:0.65rem;">● Deuda</span>' : 
+    const statusBadge = status === 'paid' ? '<span style="color:var(--color-success); font-size:0.65rem;">● Al día</span>' :
+                        status === 'debt' ? '<span style="color:var(--color-danger); font-size:0.65rem;">● Deuda</span>' :
                         '<span style="color:var(--color-warn); font-size:0.65rem;">● Sin config</span>';
     const tLabel = isAdmin ? ` <span style="color:var(--color-text-secondary); font-size:0.65rem;">(${c.trainerName})</span>` : '';
     return `<div class="pay-list-item" id="bc-${c.id}">
@@ -961,7 +923,7 @@ document.getElementById('payBtn').addEventListener('click', () => {
   const dues = clientsIndex.filter(c => { if(!c.paymentDay) return false; const pDay = parseInt(c.paymentDay); let diff = pDay - today; if (diff < 0) diff = (daysInMonth - today) + pDay; return diff >= 0 && diff <= 7; });
   const all = [...overdue, ...pendingLate, ...dues];
   const body = document.getElementById('payModalBody');
-  if(all.length === 0) { body.innerHTML = '<p style="text-align:center; color:var(--color-text-secondary); padding:2rem;">No hay vencimientos en los próximos 7 días. ¡Todo al día!</p>'; } 
+  if(all.length === 0) { body.innerHTML = '<p style="text-align:center; color:var(--color-text-secondary); padding:2rem;">No hay vencimientos en los próximos 7 días. ¡Todo al día!</p>'; }
   else {
     let totalDue = 0; all.forEach(c => { if(c.paymentAmount) totalDue += parseFloat(c.paymentAmount); });
     let html = `<div class="pay-total-banner"><div class="lbl">Total a cobrar esta semana</div><div class="amt">${fmtMoney(totalDue)}</div></div>`;
@@ -978,65 +940,180 @@ document.getElementById('payBtn').addEventListener('click', () => {
   openModal('payModal');
 });
 
-/* ============ ADD/EDIT CLIENT ============ */
+/* ============ CLIENT FORM VIEW (Full Page) ============ */
 document.getElementById('addClientBtn').addEventListener('click', () => openClientForm());
+document.getElementById('cancelClientFormBtn').addEventListener('click', () => {
+  if (currentClientId) { document.getElementById('clientFormView').style.display = 'none'; openClient(currentClientId, currentClientTrainerId); }
+  else { backToDashFromForm(); }
+});
+document.getElementById('clientFormBack').addEventListener('click', () => {
+  if (currentClientId) { document.getElementById('clientFormView').style.display = 'none'; openClient(currentClientId, currentClientTrainerId); }
+  else { backToDashFromForm(); }
+});
+
+function backToDashFromForm() {
+  currentClientId = null; currentClientTrainerId = null;
+  document.getElementById('clientFormView').style.display = 'none';
+  document.getElementById('dashboardView').style.display = 'block';
+  document.getElementById('topbarBrand').classList.remove('has-back');
+  renderGrid(); renderBirthdayBanner();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
 
 function openClientForm(id=null, trainerId=null) {
-  document.getElementById('clientId').value = id || '';
-  routineData = [];
-  const cont = document.getElementById('routineBuilderContainer');
-  cont.innerHTML = '';
+  currentClientId = id || null;
   currentClientTrainerId = trainerId || currentUserId;
-  if(id) {
-    const c = clientsIndex.find(x => x.id === id && x.trainerId === currentClientTrainerId); if(!c) return;
-    document.getElementById('clientModalTitle').innerHTML = 'Editar <span class="accent">cliente</span>';
-    document.getElementById('clientName').value = c.name || '';
-    document.getElementById('clientBirthdate').value = c.birthdate || '';
-    document.getElementById('clientPhone').value = c.phone || '';
-    document.getElementById('clientEmail').value = c.email || '';
-    document.getElementById('clientGoal').value = c.goal || '';
-    document.getElementById('clientHeight').value = c.height || '';
-    document.getElementById('clientStartDate').value = c.startDate || '';
-    document.getElementById('clientPaymentDay').value = c.paymentDay || '';
-    document.getElementById('clientPaymentStatus').value = c.paymentStatus || 'Al día';
-    document.getElementById('clientPaymentAmount').value = c.paymentAmount || '';
-    document.getElementById('clientDiet').value = c.diet || '';
-    document.getElementById('clientNotes').value = c.notes || '';
-    if(isAdmin) document.getElementById('clientTrainerId').value = c.trainerId || currentUserId;
-    if(c.routine) { c.routine.forEach(r => addExRow(r.day, r.ex, r.sets, r.reps)); }
-  } else {
-    document.getElementById('clientModalTitle').innerHTML = 'Nuevo <span class="accent">cliente</span>';
-    ['clientName','clientBirthdate','clientPhone','clientEmail','clientGoal','clientHeight','clientDiet','clientNotes','clientPaymentDay','clientPaymentAmount'].forEach(i => document.getElementById(i).value = '');
-    document.getElementById('clientStartDate').value = todayISO();
-    document.getElementById('clientPaymentStatus').value = 'Al día';
-    if(isAdmin) document.getElementById('clientTrainerId').value = currentUserId;
-  }
-  openModal('clientModal');
+  routineData = [];
+  
+  document.getElementById('dashboardView').style.display = 'none';
+  document.getElementById('statsView').style.display = 'none';
+  document.getElementById('waView').style.display = 'none';
+  document.getElementById('clientView').style.display = 'none';
+  document.getElementById('clientFormView').style.display = 'block';
+  document.getElementById('topbarBrand').classList.add('has-back');
+  
+  const cont = document.getElementById('clientFormContent');
+  const c = id ? clientsIndex.find(x => x.id === id && x.trainerId === currentClientTrainerId) : null;
+  const title = id ? 'Editar <span class="accent">cliente</span>' : 'Nuevo <span class="accent">cliente</span>';
+  
+  // Generar opciones de días de pago (1-31)
+  const payDayOptions = PAY_DAYS.map(d => `<option value="${d}" ${c && c.paymentDay == d ? 'selected' : ''}>Día ${d}</option>`).join('');
+  
+  // Generar opciones de días de la semana
+  const weekdayOptions = `<option value="">Seleccionar día</option>` + WEEKDAYS.map(d => `<option value="${d}">${d}</option>`).join('');
+  
+  // Generar filas de rutina existentes
+  const routineRowsHtml = c && c.routine && c.routine.length > 0 
+    ? c.routine.map((r, i) => buildRoutineRowHtml(r.day, r.ex, r.sets, r.reps, i)).join('')
+    : buildRoutineRowHtml('', '', '', '', 0);
+  
+  const trainerAssignRow = isAdmin ? `
+    <div class="form-row full" style="margin-bottom:1rem;">
+      <div class="form-field full">
+        <label>Asignar a Entrenador</label>
+        <select id="clientTrainerId">
+          ${getUniqueTrainers().map(u => `<option value="${u.id}" ${c && c.trainerId === u.id ? 'selected' : ''}>${u.name}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+  ` : '';
+  
+  cont.innerHTML = `
+    <div class="dashboard-header">
+      <div class="dashboard-title-block">
+        <div class="label">Formulario</div>
+        <h1 class="dashboard-title">${title}</h1>
+      </div>
+    </div>
+    <input type="hidden" id="clientId" value="${id || ''}">
+    ${trainerAssignRow}
+    <div class="form-row">
+      <div class="form-field"><label>Nombre completo *</label><input type="text" id="clientName" value="${c ? escHtml(c.name || '') : ''}"></div>
+      <div class="form-field"><label>Fecha de nacimiento</label><input type="date" id="clientBirthdate" value="${c ? c.birthdate || '' : ''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label>Teléfono (Ej: 5491112345678)</label><input type="tel" id="clientPhone" value="${c ? escHtml(c.phone || '') : ''}"></div>
+      <div class="form-field"><label>Email</label><input type="email" id="clientEmail" value="${c ? escHtml(c.email || '') : ''}"></div>
+    </div>
+    <div class="form-row full"><div class="form-field full"><label>Objetivo principal</label><input type="text" id="clientGoal" value="${c ? escHtml(c.goal || '') : ''}"></div></div>
+    <div class="form-row">
+      <div class="form-field"><label>Altura (cm)</label><input type="number" id="clientHeight" value="${c ? c.height || '' : ''}"></div>
+      <div class="form-field"><label>Fecha de inicio</label><input type="date" id="clientStartDate" value="${c ? c.startDate || '' : todayISO()}"></div>
+    </div>
+    <div class="form-divider">
+      <div class="form-divider-title">Pagos y Control</div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Día de pago</label>
+          <select id="clientPaymentDay">
+            <option value="" ${!c || !c.paymentDay ? 'selected' : ''}>Sin configurar</option>
+            ${payDayOptions}
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Estado de cuota</label>
+          <select id="clientPaymentStatus">
+            <option value="Al día" ${!c || c.paymentStatus === 'Al día' ? 'selected' : ''}>Al día</option>
+            <option value="Pendiente" ${c && c.paymentStatus === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+            <option value="Vencido" ${c && c.paymentStatus === 'Vencido' ? 'selected' : ''}>Vencido</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-field full"><label>Precio de la cuota ($)</label><input type="number" id="clientPaymentAmount" placeholder="Ej: 15000" min="0" value="${c ? c.paymentAmount || '' : ''}"></div>
+      </div>
+    </div>
+    <div class="form-divider">
+      <div class="form-divider-title">Rutina de Entrenamiento</div>
+      <div id="routineBuilderContainer">${routineRowsHtml}</div>
+      <button class="add-ex-btn" id="addExBtn">+ Agregar Ejercicio</button>
+    </div>
+    <div class="form-divider">
+      <div class="form-divider-title">Plan Nutricional / Dieta</div>
+      <div class="form-row full"><div class="form-field full"><textarea id="clientDiet" placeholder="Desayuno: Avena con frutas...">${c ? escHtml(c.diet || '') : ''}</textarea></div></div>
+    </div>
+    <div class="form-divider">
+      <div class="form-divider-title">Notas privadas</div>
+      <div class="form-row full"><div class="form-field full"><textarea id="clientNotes" placeholder="Lesiones, condiciones médicas...">${c ? escHtml(c.notes || '') : ''}</textarea></div></div>
+    </div>
+  `;
+  
+  // Bind add exercise button
+  document.getElementById('addExBtn').addEventListener('click', () => {
+    const cont = document.getElementById('routineBuilderContainer');
+    const idx = cont.querySelectorAll('.routine-builder-row').length;
+    const div = document.createElement('div');
+    div.innerHTML = buildRoutineRowHtml('', '', '', '', idx);
+    while (div.firstChild) cont.appendChild(div.firstChild);
+    bindDeleteButtons();
+  });
+  
+  bindDeleteButtons();
+  window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-function addExRow(day='', ex='', sets='', reps='') {
-  const cont = document.getElementById('routineBuilderContainer');
-  const div = document.createElement('div');
-  div.className = 'routine-builder-row';
-  div.innerHTML = `<input type="text" placeholder="Día (Ej: Lunes)" value="${day}" style="grid-column: span 2;"><select>${EXERCISES.map(e => `<option ${e===ex?'selected':''}>${e}</option>`).join('')}</select><input type="text" placeholder="Series" value="${sets}"><input type="text" placeholder="Reps" value="${reps}"><button type="button" data-del>X</button>`;
-  div.querySelector('[data-del]').addEventListener('click', () => div.remove());
-  cont.appendChild(div);
+function buildRoutineRowHtml(day='', ex='', sets='', reps='', idx=0) {
+  const weekdayOpts = WEEKDAYS.map(d => `<option value="${d}" ${d === day ? 'selected' : ''}>${d}</option>`).join('');
+  const exOpts = EXERCISES.map(e => `<option value="${e}" ${e === ex ? 'selected' : ''}>${e}</option>`).join('');
+  return `<div class="routine-builder-row" data-row="${idx}">
+    <select class="routine-day">${weekdayOpts}</select>
+    <select class="routine-ex">${exOpts}</select>
+    <input type="text" class="routine-sets" placeholder="Series" value="${sets}">
+    <input type="text" class="routine-reps" placeholder="Reps" value="${reps}">
+    <button type="button" class="routine-del">X</button>
+  </div>`;
 }
-document.getElementById('addExBtn').addEventListener('click', () => addExRow());
+
+function bindDeleteButtons() {
+  document.querySelectorAll('.routine-del').forEach(btn => {
+    btn.onclick = (e) => {
+      const row = e.target.closest('.routine-builder-row');
+      if (row) row.remove();
+    };
+  });
+}
 
 document.getElementById('saveClientBtn').addEventListener('click', async () => {
   const id = document.getElementById('clientId').value;
   const name = document.getElementById('clientName').value.trim();
   if(!name) { showToast('El nombre es obligatorio', 'error'); return; }
   const assignedTrainerId = isAdmin ? document.getElementById('clientTrainerId').value : currentUserId;
-  const b = document.getElementById('saveClientBtn'); b.disabled=true; b.innerHTML='<div class="spinner"></div>'; setSync(true);
-  const rRows = document.querySelectorAll('.routine-builder-row');
+  const b = document.getElementById('saveClientBtn'); b.disabled=true; b.innerHTML='<div class="spinner"></div> Guardando...'; setSync(true);
+  
+  // Collect routine data
   routineData = [];
-  rRows.forEach(r => { const inp=r.querySelectorAll('input, select'); if(inp[1].value) routineData.push({day:inp[0].value, ex:inp[1].value, sets:inp[2].value, reps:inp[3].value}); });
+  document.querySelectorAll('#routineBuilderContainer .routine-builder-row').forEach(row => {
+    const day = row.querySelector('.routine-day').value;
+    const ex = row.querySelector('.routine-ex').value;
+    const sets = row.querySelector('.routine-sets').value;
+    const reps = row.querySelector('.routine-reps').value;
+    if (ex) routineData.push({day, ex, sets, reps});
+  });
+
   try {
     let cd;
     const oldTrainerId = currentClientTrainerId;
-    if (id) { cd = await getClient(id, oldTrainerId); } 
+    if (id) { cd = await getClient(id, oldTrainerId); }
     else { cd = { id: uid(), shortId: genShortId(), photo: '', measurements: [], createdAt: new Date().toISOString() }; }
     cd.name = name;
     cd.birthdate = document.getElementById('clientBirthdate').value;
@@ -1051,6 +1128,7 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
     cd.routine = routineData;
     cd.diet = document.getElementById('clientDiet').value.trim();
     cd.notes = document.getElementById('clientNotes').value.trim();
+    
     if (isAdmin && id && oldTrainerId !== assignedTrainerId) {
       await deleteClientData(id, oldTrainerId);
       clientsIndex = clientsIndex.filter(c => !(c.id === id && c.trainerId === oldTrainerId));
@@ -1065,9 +1143,15 @@ document.getElementById('saveClientBtn').addEventListener('click', async () => {
     if(idx > -1) clientsIndex[idx] = entry; else clientsIndex.push(entry);
     await saveIndex(assignedTrainerId);
     showToast(id ? 'Cliente actualizado' : 'Cliente agregado');
-    closeModal('clientModal');
-    if(id === currentClientId) await renderClientDetail(id, assignedTrainerId); else { renderGrid(); renderBirthdayBanner(); }
-  } catch(e) { showToast('Error al guardar', 'error'); } finally { b.disabled=false; b.innerHTML='Guardar cliente'; setSync(false); }
+    
+    if (id) {
+      document.getElementById('clientFormView').style.display = 'none';
+      await openClient(id, assignedTrainerId);
+    } else {
+      backToDashFromForm();
+    }
+  } catch(e) { showToast('Error al guardar', 'error'); console.error(e); }
+  finally { b.disabled=false; b.innerHTML='Guardar cliente'; setSync(false); }
 });
 
 /* ============ CLIENT DETAIL ============ */
@@ -1077,6 +1161,7 @@ async function openClient(id, trainerId=null) {
   document.getElementById('dashboardView').style.display = 'none';
   document.getElementById('statsView').style.display = 'none';
   document.getElementById('waView').style.display = 'none';
+  document.getElementById('clientFormView').style.display = 'none';
   document.getElementById('clientView').style.display = 'block';
   document.getElementById('topbarBrand').classList.add('has-back');
   await renderClientDetail(id, currentClientTrainerId);
@@ -1087,12 +1172,12 @@ async function backToDash() {
   document.getElementById('clientView').style.display = 'none';
   document.getElementById('dashboardView').style.display = 'block';
   document.getElementById('topbarBrand').classList.remove('has-back');
-  renderGrid();
-  renderBirthdayBanner();
+  renderGrid(); renderBirthdayBanner();
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 document.getElementById('clientBack').addEventListener('click', backToDash);
 document.getElementById('topbarBrand').addEventListener('click', () => {
+  if (document.getElementById('clientFormView').style.display === 'block') { document.getElementById('clientFormBack').click(); return; }
   if (currentClientId) { backToDash(); return; }
   if (document.getElementById('statsView').style.display === 'block') { document.getElementById('statsBack').click(); return; }
   if (document.getElementById('waView').style.display === 'block') { document.getElementById('waBack').click(); return; }
@@ -1168,7 +1253,7 @@ async function renderClientDetail(id, trainerId) {
   `;
   document.getElementById('addMBtn').addEventListener('click', () => openMForm(c.id, trainerId));
   document.getElementById('editClientBtn').addEventListener('click', () => openClientForm(c.id, trainerId));
-  document.getElementById('sendProfileBtn').addEventListener('click', () => { 
+  document.getElementById('sendProfileBtn').addEventListener('click', () => {
     if (c.phone) {
       const waMsg = `Aqui esta tu Perfil de Gym Brothers: ${portalLink}`;
       const waLink = `https://wa.me/${c.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(waMsg)}`;
